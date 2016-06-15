@@ -25,6 +25,7 @@
 #include <linux/percpu.h>
 #include <linux/slab.h>
 #include <linux/module.h>
+#include <linux/wakeup_reason.h>
 
 #include <linux/irqchip.h>
 #include <linux/irqchip/arm-gic-v3.h>
@@ -494,6 +495,7 @@ static void gic_show_resume_irq(struct gic_chip_data *gic)
 		else if (desc->action && desc->action->name)
 			name = desc->action->name;
 
+		log_base_wakeup_reason(irq);
 		pr_warn("%s: %d triggered %s\n", __func__, irq, name);
 		#ifdef CONFIG_PRODUCT_REALME_RMX1801
 		//liuhd@PSW.CN.WiFi.Hardware.1202765,2017/12/10,add for the irq of wlan when system wakeuped by wlan
