@@ -1942,6 +1942,8 @@ UMAC_DBR_OBJS := $(DBR_DIR)/src/target_if_direct_buf_rx_api.o \
 		 $(WLAN_COMMON_ROOT)/wmi/src/wmi_unified_dbr_tlv.o
 endif
 
+subdir-ccflags-y := $(call cc-disable-warning, misleading-indentation)
+
 ifeq ($(CONFIG_WLAN_FEATURE_DSRC), y)
 WMA_OBJS+=	$(WMA_SRC_DIR)/wma_ocb.o
 endif
