@@ -654,6 +654,12 @@ struct mdss_dsi_ctrl_pdata {
 	atomic_t clkrate_change_pending;
 #endif /*CONFIG_PRODUCT_REALME_RMX1801*/
 
+	struct notifier_block wake_notif;
+	struct task_struct *wake_thread;
+	struct completion wake_comp;
+	wait_queue_head_t wake_waitq;
+	atomic_t disp_is_on;
+	atomic_t needs_wake;
 };
 
 struct dsi_status_data {
