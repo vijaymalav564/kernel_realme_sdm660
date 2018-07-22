@@ -700,6 +700,8 @@ static int msm_restart_probe(struct platform_device *pdev)
 	}
 	#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 
+	atomic_notifier_chain_register(&panic_notifier_list, &panic_blk);
+
 #ifdef CONFIG_QCOM_DLOAD_MODE
 	if (scm_is_call_available(SCM_SVC_BOOT, SCM_DLOAD_CMD) > 0)
 		scm_dload_supported = true;
