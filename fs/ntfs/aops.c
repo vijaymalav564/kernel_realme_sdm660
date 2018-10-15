@@ -925,7 +925,7 @@ static int ntfs_write_mst_block(struct page *page,
 	ntfs_volume *vol = ni->vol;
 	u8 *kaddr;
 	unsigned int rec_size = ni->itype.index.block_size;
-	ntfs_inode *locked_nis[PAGE_SIZE / NTFS_BLOCK_SIZE];
+	ntfs_inode *locked_nis[PAGE_CACHE_SIZE / NTFS_BLOCK_SIZE];
 	struct buffer_head *bh, *head, *tbh, *rec_start_bh;
 	struct buffer_head *bhs[MAX_BUF_PER_PAGE];
 	runlist_element *rl;
