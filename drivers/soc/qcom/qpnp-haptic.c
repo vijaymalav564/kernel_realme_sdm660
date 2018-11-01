@@ -1826,7 +1826,7 @@ static ssize_t qpnp_hap_min_show(struct device *dev,
 	struct qpnp_hap *hap = container_of(timed_dev, struct qpnp_hap,
 					 timed_dev);
 
-	return snprintf(buf, PAGE_SIZE, "%d\n", hap->vtg_min);
+	return scnprintf(buf, PAGE_SIZE, "%d\n", hap->vtg_min);
 }
 
 static ssize_t qpnp_hap_max_show(struct device *dev,
@@ -1836,7 +1836,7 @@ static ssize_t qpnp_hap_max_show(struct device *dev,
 	struct qpnp_hap *hap = container_of(timed_dev, struct qpnp_hap,
 					 timed_dev);
 
-	return snprintf(buf, PAGE_SIZE, "%d\n", hap->vtg_max);
+	return scnprintf(buf, PAGE_SIZE, "%d\n", hap->vtg_max);
 }
 
 static ssize_t qpnp_hap_default_show(struct device *dev,
@@ -1846,7 +1846,7 @@ static ssize_t qpnp_hap_default_show(struct device *dev,
 	struct qpnp_hap *hap = container_of(timed_dev, struct qpnp_hap,
 					 timed_dev);
 
-	return snprintf(buf, PAGE_SIZE, "%d\n", hap->vtg_default);
+	return scnprintf(buf, PAGE_SIZE, "%d\n", hap->vtg_default);
 }
 
 /* sysfs attributes */
