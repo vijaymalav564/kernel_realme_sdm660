@@ -749,6 +749,7 @@ const char * const vmstat_text[] = {
 	"nr_shmem",
 	"nr_dirtied",
 	"nr_written",
+	"nr_gpu_heap",
 	"nr_pages_scanned",
 
 #ifdef CONFIG_NUMA
