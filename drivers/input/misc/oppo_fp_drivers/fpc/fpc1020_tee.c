@@ -66,7 +66,7 @@ struct vreg_config {
         int ua_load;
 };
 
-static const struct vreg_config const vreg_conf[] = {
+static const struct vreg_config vreg_conf[] = {
         { "vdd_io", 1800000UL, 1800000UL, 6000, },
         { "vdd_3v", 3000000UL, 3000000UL, 6000, },
 };
