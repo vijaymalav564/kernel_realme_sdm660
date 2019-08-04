@@ -42,6 +42,7 @@ extern bool oppo_usbid_check_is_gpio(struct oppo_chg_chip *chip);
 		__func__, ##__VA_ARGS__)	\
 
 #ifndef CONFIG_PRODUCT_REALME_RMX1801
+#ifdef CONFIG_DEBUG_SMB_LIB
 /* Jianchao.Shi@BSP.CHG.Basic, 2017/03/15, sjc Add for OTG debug */
 #define smblib_dbg(chg, reason, fmt, ...)			\
 	do {							\
@@ -53,6 +54,7 @@ extern bool oppo_usbid_check_is_gpio(struct oppo_chg_chip *chip);
 				__func__, ##__VA_ARGS__);	\
 	} while (0)
 #else
+#ifdef CONFIG_DEBUG_SMB_LIB
 #define smblib_dbg(chg, reason, fmt, ...)			\
 	do {							\
 		if (*chg->debug_mask & (reason))		\
@@ -62,6 +64,9 @@ extern bool oppo_usbid_check_is_gpio(struct oppo_chg_chip *chip);
 			pr_debug("%s: %s: " fmt, chg->name,	\
 				__func__, ##__VA_ARGS__);	\
 	} while (0)
+#else
+#define smblib_dbg(chg, reason, fmt, ...) do {} while (0)
+#endif
 
 static bool is_secure(struct smb_charger *chg, int addr)
 {
@@ -3318,10 +3323,12 @@ int smblib_get_prop_slave_current_now(struct smb_charger *chg,
 
 irqreturn_t smblib_handle_debug(int irq, void *data)
 {
+#ifdef CONFIG_DEBUG_SMB_LIB
 	struct smb_irq_data *irq_data = data;
 	struct smb_charger *chg = irq_data->parent_data;
 
 	smblib_dbg(chg, PR_INTERRUPT, "IRQ: %s\n", irq_data->name);
+#endif
 	return IRQ_HANDLED;
 }
 
