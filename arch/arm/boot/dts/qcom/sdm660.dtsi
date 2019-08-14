@@ -310,7 +310,7 @@
 //#ifndef CONFIG_PRODUCT_REALME_RMX1801 //Fanhong.Kong@PSW.BSP.CHG,add 2017/10/25 for close AB 
 //					fsmgr_flags = "wait,slotselect,verify";
 //#else/*CONFIG_PRODUCT_REALME_RMX1801*/
-					fsmgr_flags = "wait,verify";
+					fsmgr_flags = "wait";
 //#endif/*CONFIG_PRODUCT_REALME_RMX1801*/
 					status = "ok";
 				};
