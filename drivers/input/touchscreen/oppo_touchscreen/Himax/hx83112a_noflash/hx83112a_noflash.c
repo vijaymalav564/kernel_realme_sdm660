@@ -1477,10 +1477,6 @@ int himax_mcu_0f_operation_dirly(void)
     int err = NO_ERR;
     //const struct firmware *fw_entry = NULL;
 
-    TPD_DETAIL("%s, Entering \n", __func__);
-    TPD_DETAIL("file name = %s\n", private_ts->panel_data.fw_name);
-    
-
     if(g_f_0f_updat == 1) {
         TPD_INFO("%s:[Warning]Other thread is updating now!\n", __func__);
         err = -1;
@@ -1504,19 +1500,6 @@ int himax_mcu_0f_operation_test_dirly(char *fw_name)
 {
     int err = NO_ERR;
     const struct firmware *fw_entry = NULL;
-
-    TPD_DETAIL("%s, Entering \n", __func__);
-    TPD_DETAIL("file name = %s\n", fw_name);
-    TPD_INFO("Request TP firmware.\n");
-    err = request_firmware (&fw_entry, fw_name, private_ts->dev);
-    if (err < 0) {
-        TPD_INFO("%s, fail in line%d error code=%d,file maybe fail\n", __func__, __LINE__, err);
-        if(fw_entry != NULL) {
-            release_firmware(fw_entry);
-            fw_entry = NULL;
-        }
-        return err;
-    }
 
     hx83112b_enable_interrupt(g_chip_info, false);
 
