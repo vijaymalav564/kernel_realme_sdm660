@@ -367,9 +367,9 @@ static void tp_gesture_handle(struct touchpanel_data *ts)
         if(ts->geature_ignore)
             return;
         #endif
-        input_report_key(ts->input_dev, KEY_F4, 1);
+        input_report_key(ts->input_dev, KEY_WAKEUP, 1);
         input_sync(ts->input_dev);
-        input_report_key(ts->input_dev, KEY_F4, 0);
+        input_report_key(ts->input_dev, KEY_WAKEUP, 0);
         input_sync(ts->input_dev);
     } else if (gesture_info_temp.gesture_type == FingerprintDown) {
         ts->fp_info.touch_state = 1;
@@ -3795,7 +3795,7 @@ static int init_input_device(struct touchpanel_data *ts)
     set_bit(INPUT_PROP_DIRECT, ts->input_dev->propbit);
     set_bit(BTN_TOUCH, ts->input_dev->keybit);
     if (ts->black_gesture_support) {
-        set_bit(KEY_F4, ts->input_dev->keybit);
+        set_bit(KEY_WAKEUP, ts->input_dev->keybit);
     }
 
     ts->kpd_input_dev->name = TPD_DEVICE"_kpd";
