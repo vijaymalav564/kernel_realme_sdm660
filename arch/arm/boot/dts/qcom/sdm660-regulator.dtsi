@@ -388,8 +388,8 @@
 	rpm-regulator-ldob8 {
 		status = "okay";
 		pm660l_l8: regulator-l8 {
-			regulator-min-microvolt = <3200000>;
-			regulator-max-microvolt = <3400000>;
+			regulator-min-microvolt = <3000000>;
+			regulator-max-microvolt = <3000000>;
 			status = "okay";
 		};
 	};
