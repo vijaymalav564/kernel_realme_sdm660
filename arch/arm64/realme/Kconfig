@@ -1,0 +1,26 @@
+menu "Realme product selection"
+
+config PRODUCT_REALME
+	bool "Realme devices"
+	help
+	  This enables support for Realme devices.
+
+if PRODUCT_REALME
+
+config PRODUCT_REALME_SDM660
+	bool "Realme SDM660-Common"
+
+choice
+	prompt "Realme device"
+
+config PRODUCT_REALME_RMX1801
+	bool "Realme 2 Pro"
+	select PRODUCT_REALME_SDM660
+	help
+	  This enables support for Realme 2 Pro.
+
+endchoice
+
+endif
+
+endmenu
