@@ -153,40 +153,6 @@ static const struct nvt_ts_trim_id_table trim_id_table[] = {
         .mmap = &NT36772_memory_map, .carrier_system = 0,  .support_hw_crc = 0},
 };
 
-#ifdef CONFIG_SPI_MT65XX
-static const struct mtk_chip_config spi_ctrdata = {
-    .rx_mlsb = 1,
-    .tx_mlsb = 1,
-    .cs_pol = 0,
-};
-#else
-static const struct mt_chip_conf spi_ctrdata = {
-        .setuptime = 25,
-        .holdtime = 25,
-        .high_time = 3, /* 16.6MHz */
-        .low_time = 3,
-        .cs_idletime = 2,
-        .ulthgh_thrsh = 0,
-
-        .cpol = 0,
-        .cpha = 0,
-
-        .rx_mlsb = 1,
-        .tx_mlsb = 1,
-
-        .tx_endian = 0,
-        .rx_endian = 0,
-
-        .com_mod = DMA_TRANSFER,
-
-        .pause = 0,
-        .finish_intr = 1,
-        .deassert = 0,
-        .ulthigh = 0,
-        .tckdly = 0,
-};
-#endif	//CONFIG_SPI_MT65XX
-
 /*******************************************************
 Description:
     Novatek touchscreen write data to specify address.
@@ -1262,18 +1228,10 @@ static int nvt_get_chip_info(void *chip_data)
     return ret;
 }
 
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-extern unsigned int upmu_get_rgs_chrdet(void);
-static int nvt_get_usb_state(void)
-{
-    return upmu_get_rgs_chrdet();
-}
-#else
 static int nvt_get_usb_state(void)
 {
     return 0;
 }
-#endif
 
 static int nvt_get_vendor(void *chip_data, struct panel_info *panel_data)
 {
@@ -1647,7 +1605,7 @@ static int nvt_reset(void *chip_data)
     mutex_lock(&chip_info->mutex_testing);
 
     if(!ts->fw_update_app_support || chip_info->probe_done){
-        if (chip_info->g_fw == NULL && !is_oem_unlocked()) {
+        if (chip_info->g_fw == NULL) {
             TPD_INFO("%s Request TP firmware.\n", __func__);
             if(ts->fw_update_app_support) {
                 ret = request_firmware_select(&chip_info->g_fw, chip_info->fw_name, chip_info->dev);
@@ -2367,62 +2325,13 @@ static fw_update_state nvt_fw_update(void *chip_data, const struct firmware *fw,
     struct chip_data_nt36672 *chip_info = (struct chip_data_nt36672 *)chip_data;
     struct touchpanel_data *ts = spi_get_drvdata(chip_info->s_client);
     struct firmware *request_fw_headfile = NULL;
-    char *p_node = NULL;
     char *fw_name_fae = NULL;
-    char *postfix = "_FAE";
-    uint8_t copy_len = 0;
 /*
     if(chip_info->using_headfile) {
         goto download_fail;
     }
 */
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-    if (ts->boot_mode != RECOVERY_BOOT && !is_oem_unlocked())
-#else
-    if (ts->boot_mode != MSM_BOOT_MODE__RECOVERY && !is_oem_unlocked())
-#endif
-    {
-        if(ts->fw_update_app_support && force == 1) {
-            fw_name_fae = kzalloc(MAX_FW_NAME_LENGTH, GFP_KERNEL);
-            if(fw_name_fae == NULL) {
-                TPD_INFO("fw_name_fae kzalloc error!\n");
-            } else {
-                p_node  = strstr(ts->panel_data.fw_name, ".");
-                if (p_node != NULL) {
-                    copy_len = p_node - ts->panel_data.fw_name;
-                    memcpy(fw_name_fae, ts->panel_data.fw_name, copy_len);
-                    strlcat(fw_name_fae, postfix, MAX_FW_NAME_LENGTH);
-                    strlcat(fw_name_fae, p_node, MAX_FW_NAME_LENGTH);
-                    if(chip_info->g_fw != NULL) {
-                        release_firmware(chip_info->g_fw);
-                        chip_info->g_fw = NULL;
-                    }
-                }
-            }
-        }
 
-        if (chip_info->g_fw == NULL) {
-            TPD_INFO("%s Request TP firmware.\n", __func__);
-            if(ts->fw_update_app_support) {
-                if(fw_name_fae == NULL) {
-                    ret = request_firmware_select(&chip_info->g_fw, chip_info->fw_name, chip_info->dev);
-                } else {
-                    ret = request_firmware(&chip_info->g_fw, fw_name_fae, chip_info->dev);
-                }
-            } else {
-                ret = request_firmware(&chip_info->g_fw, chip_info->fw_name, chip_info->dev);
-            }
-            if (ret != 0) {
-                TPD_INFO("%s : request firmware failed! ret = %d\n", __func__, ret);
-                if(chip_info->g_fw != NULL) {
-                    release_firmware(chip_info->g_fw);
-                    chip_info->g_fw = NULL;
-                }
-            }
-        } else {
-            TPD_DETAIL("%s TP firmware has been requested.\n", __func__);
-        }
-    }
     if(fw_name_fae != NULL) {
         kfree(fw_name_fae);
         fw_name_fae = NULL;
@@ -3912,22 +3821,6 @@ static int nvt_tp_probe(struct spi_device *client)
     ts->s_client->mode = SPI_MODE_0;
     ts->s_client->chip_select = 0; //modify reg=0 for more tp vendor share same spi interface
 
-#ifdef CONFIG_SPI_MT65XX
-    /* new usage of MTK spi API */
-    memcpy(&chip_info->spi_ctrl, &spi_ctrdata, sizeof(struct mtk_chip_config));
-    ts->s_client->controller_data = (void *)&chip_info->spi_ctrl;
-#else
-    /* old usage of MTK spi API */
-    memcpy(&chip_info->spi_ctrl, &spi_ctrdata, sizeof(struct mt_chip_conf));
-    ts->s_client->controller_data = (void *)&chip_info->spi_ctrl;
-
-    ret = spi_setup(ts->s_client);
-    if (ret < 0) {
-        TPD_INFO("Failed to perform SPI setup\n");
-        goto err_spi_setup;
-    }
-#endif	//CONFIG_SPI_MT65XX
-
     TPD_INFO("mode=%d, max_speed_hz=%d\n", ts->s_client->mode, ts->s_client->max_speed_hz);
 
     /* 4. file_operations callbacks binding */
@@ -3948,25 +3841,6 @@ static int nvt_tp_probe(struct spi_device *client)
     /*6. create nvt test files*/
     nvt_flash_proc_init(ts, "NVTSPI");
     nvt_create_proc(ts, &nvt_proc_ops);
-
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-    if (ts->boot_mode == RECOVERY_BOOT)
-#else
-    if (ts->boot_mode == MSM_BOOT_MODE__RECOVERY)
-#endif
-    {
-        TPD_INFO("In Recovery mode, no-flash download fw by headfile\n");
-        ret = nvt_fw_update(chip_info, NULL, 0);
-        if(ret > 0) {
-            TPD_INFO("fw update failed!\n");
-        }
-    }else {
-        TPD_INFO("It's oem unlock, no-flash download fw by headfile\n");
-        ret = nvt_fw_update(chip_info, NULL, 0);
-        if(ret > 0) {
-            TPD_INFO("fw update failed!\n");
-        }
-     }
 
     chip_info->probe_done = 1;
     TPD_INFO("%s, probe normal end\n", __func__);
@@ -4063,7 +3937,6 @@ static int32_t __init nvt_driver_init(void)
     TPD_INFO("%s is called\n", __func__);
         if (!tp_judge_ic_match(TPD_DEVICE))
             return -1;
-	get_oem_verified_boot_state();
     if (spi_register_driver(&tp_spi_driver)!= 0) {
         TPD_INFO("unable to add spi driver.\n");
         return -1;
