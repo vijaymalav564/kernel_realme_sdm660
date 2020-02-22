@@ -33,11 +33,7 @@
 #include "util_interface/touch_interfaces.h"
 #include "tp_devices.h"
 
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-#include<mt-plat/mtk_boot_common.h>
-#else
 #include <soc/oppo/boot_mode.h>
-#endif
 
 #define EFTM (250)
 #define FW_UPDATE_COMPLETE_TIMEOUT  msecs_to_jiffies(40*1000)
@@ -224,11 +220,6 @@ typedef enum lcd_power {
     LCD_POWER_OFF,
     LCD_POWER_ON,
 }lcd_power_status;
-
-typedef enum {
-    OEM_VERIFIED_BOOT_STATE_UNLOCKED,
-    OEM_VERIFIED_BOOT_STATE_LOCKED,
-}oem_verified_boot_state;
 
 struct Coordinate {
     int x;
@@ -676,8 +667,6 @@ extern int tp_util_get_vendor(struct hw_resource *hw_res, struct panel_info *pan
 extern bool tp_judge_ic_match(char * tp_ic_name);
 __attribute__((weak)) int request_firmware_select(const struct firmware **firmware_p, const char *name, struct device *device) {return 1;}
 __attribute__((weak)) int opticalfp_irq_handler(struct fp_underscreen_info *fp_tpinfo) {return 0;}
-bool is_oem_unlocked(void);
-int __init get_oem_verified_boot_state(void);
 
 #endif
 

@@ -22,15 +22,7 @@
 #include <linux/fb.h>
 #include <linux/notifier.h>
 #endif
-#ifdef CONFIG_SPI_MT65XX
-#include <linux/platform_data/spi-mt65xx.h>
-#endif
 #include "../himax_common.h"
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-#include "mtk_gpio.h"
-#else
-#include "oppo_spi.h"
-#endif
 
 #define HX_ZERO_FLASH
 
@@ -385,14 +377,9 @@ struct chip_data_hx83112b {
     struct hw_resource *hw_res;
     int16_t *spuri_fp_data;
     struct spurious_fp_touch *p_spuri_fp_touch;
-/********SPI bus*******************************/	
+/********SPI bus*******************************/
 	struct spi_device	*hx_spi;
-	int 				hx_irq;
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-	struct mtk_chip_config hx_spi_mcc;
-#else
-    struct mt_chip_conf    hx_spi_mcc;
-#endif
+	int 			hx_irq;
 /********SPI bus*******************************/
 #ifdef HX_ZERO_FLASH
     struct mutex             spi_lock;

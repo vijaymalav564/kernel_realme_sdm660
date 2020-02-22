@@ -21,16 +21,8 @@
 #include <linux/fb.h>
 #include <linux/notifier.h>
 #endif
-#ifdef CONFIG_SPI_MT65XX
-#include <linux/platform_data/spi-mt65xx.h>
-#endif
 
 #include "../novatek_common.h"
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-#include "mtk_spi.h"
-#else
-#include "oppo_spi.h"
-#endif
 
 #define NVT_ID_BYTE_MAX 6
 #define POINT_DATA_LEN 65
@@ -193,11 +185,6 @@ struct chip_data_nt36672 {
     struct nvt_ts_bin_map           *bin_map;
     struct device                   *dev;
     const struct firmware           *g_fw;
-#ifdef CONFIG_SPI_MT65XX
-    struct mtk_chip_config          spi_ctrl;
-#else
-    struct mt_chip_conf             spi_ctrl;
-#endif
     uint8_t                         touch_direction;    //show touchpanel current direction
     struct mutex                    mutex_testing;
     int                             probe_done;

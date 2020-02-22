@@ -70,42 +70,6 @@ static int HX_TOUCH_INFO_POINT_CNT   = 0;
 int g_lcd_vendor = 0;
 int irq_en_cnt = 0;
 
-
-/*******Part0: SPI Interface***************/
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-const struct mtk_chip_config hx_spi_ctrdata = {
-    .rx_mlsb = 1,
-    .tx_mlsb = 1,
-    .cs_pol = 0,
-};
-#else
-const struct mt_chip_conf hx_spi_ctrdata = {
-        .setuptime = 25,
-        .holdtime = 25,
-        .high_time = 3, /* 16.6MHz */
-        .low_time = 3,
-        .cs_idletime = 2,
-        .ulthgh_thrsh = 0,
-
-        .cpol = 0,
-        .cpha = 0,
-
-        .rx_mlsb = 1,
-        .tx_mlsb = 1,
-
-        .tx_endian = 0,
-        .rx_endian = 0,
-
-        .com_mod = DMA_TRANSFER,
-
-        .pause = 0,
-        .finish_intr = 1,
-        .deassert = 0,
-        .ulthigh = 0,
-        .tckdly = 0,
-};
-#endif
-
 static ssize_t himax_spi_sync(struct touchpanel_data *ts, struct spi_message *message)
 {
     int status;
@@ -1514,21 +1478,7 @@ void himax_mcu_0f_operation(struct work_struct *work)
 {
     //const struct firmware *fw_entry = NULL;
 
-
     TPD_INFO("%s, Entering \n", __func__);
-
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-    if (private_ts->boot_mode != RECOVERY_BOOT && !is_oem_unlocked())
-#else
-    if (private_ts->boot_mode != MSM_BOOT_MODE__RECOVERY  && !is_oem_unlocked())
-#endif
-    {
-	
-     TPD_INFO("file name = %s\n", private_ts->panel_data.fw_name);
-	
-    } else {
-        TPD_INFO("TP firmware has been requested.\n");
-    }
 
     if(g_f_0f_updat == 1) {
         TPD_INFO("%s:[Warning]Other thread is updating now!\n", __func__);
@@ -1539,7 +1489,7 @@ void himax_mcu_0f_operation(struct work_struct *work)
     }
 
     hx83112b_enable_interrupt(g_chip_info, false);
-    
+
     /* trigger reset */
     hx83112b_resetgpio_set(g_chip_info->hw_res, false); // reset gpio
     hx83112b_resetgpio_set(g_chip_info->hw_res, true); // reset gpio
@@ -3852,13 +3802,8 @@ static size_t hx83112b_proc_register_read(struct file *file, char *buf, size_t l
 {
     size_t ret = 0;
     uint16_t loop_i;
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-    int max_bus_size = MAX_RECVS_SZ;
-    uint8_t data[MAX_RECVS_SZ];
-#else
     int max_bus_size = 128;
     uint8_t data[128];
-#endif
     char *temp_buf;
     //struct touchpanel_data *ts = PDE_DATA(file_inode(file));
 
@@ -5022,10 +4967,6 @@ static int hx83112b_reset(void *chip_data)
     }
     himax_sense_on(0x00);
 
-    /*Yulianghan@RM.PSW.BSP.TP, 2018/09/07, add for hx83112a_noflash lcd esd TP irq exception in realme 18612*/
-    #ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-    enable_irq(chip_info->hx_irq);
-    #endif
     //hx83112b_enable_interrupt(g_chip_info, true);
     //esd hw reset
     return ret;
@@ -6160,19 +6101,10 @@ static fw_update_state hx83112b_fw_update(void *chip_data, const struct firmware
     return FW_UPDATE_SUCCESS;
 }
 
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-extern unsigned int upmu_get_rgs_chrdet(void);
-static int hx83112b_get_usb_state(void)
-{
-    return upmu_get_rgs_chrdet();
-}
-#else
 static int hx83112b_get_usb_state(void)
 {
     return 0;
 }
-#endif
-
 
 static int hx83112b_reset_gpio_control(void *chip_data, bool enable)
 {
@@ -6299,32 +6231,15 @@ static int hx83112b_tp_probe(struct spi_device *spi)
     ts->s_client->mode = SPI_MODE_3;
     ts->s_client->chip_select = 0;
 
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-    /* new usage of MTK spi API */
-    memcpy(&chip_info->hx_spi_mcc, &hx_spi_ctrdata, sizeof(struct mtk_chip_config));
-    ts->s_client->controller_data = (void *)&chip_info->hx_spi_mcc;
-#else
-    /* old usage of MTK spi API */
-    memcpy(&chip_info->hx_spi_mcc, &hx_spi_ctrdata, sizeof(struct mt_chip_conf));
-    ts->s_client->controller_data = (void *)&chip_info->hx_spi_mcc;
+    chip_info->p_spuri_fp_touch = &(ts->spuri_fp_touch);
 
-    ret = spi_setup(ts->s_client);
-    if (ret < 0) {
-        TPD_INFO("Failed to perform SPI setup\n");
-        goto err_spi_setup;
-    }
-#endif    
-    chip_info->p_spuri_fp_touch = &(ts->spuri_fp_touch);    
-    
     //disable_irq_nosync(chip_info->hx_irq);
 
     //step4:file_operations callback binding
     ts->ts_ops = &hx83112b_ops;
-    
+
     private_ts = ts;
 
-    
-    
     //step5:register common touch
     ret = register_common_touch_device(ts);
     if (ret < 0) {
@@ -6365,11 +6280,7 @@ static int hx83112b_tp_probe(struct spi_device *spi)
     irq_en_cnt = 1;
     TPD_INFO("%s, probe normal end\n", __func__);
 
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-    if (ts->boot_mode == RECOVERY_BOOT)
-#else
     if (ts->boot_mode == MSM_BOOT_MODE__RECOVERY)
-#endif
     {
         enable_irq(chip_info->hx_irq);
         TPD_INFO("In Recovery mode, no-flash download fw by headfile\n");
@@ -6491,7 +6402,7 @@ static int __init tp_driver_init(void)
     }
 
     get_lcd_vendor();
-	get_oem_verified_boot_state();
+
     status = spi_register_driver(&himax_common_driver);
     if (status < 0) {
         TPD_INFO("%s, Failed to register SPI driver.\n", __func__);

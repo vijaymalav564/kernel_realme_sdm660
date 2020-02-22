@@ -191,11 +191,7 @@ static void tp_touch_down(struct touchpanel_data *ts, struct point_info points, 
 
     input_report_key(ts->input_dev, BTN_TOUCH, 1);
     input_report_key(ts->input_dev, BTN_TOOL_FINGER, 1);
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-    if (ts->boot_mode == RECOVERY_BOOT)
-#else
     if (ts->boot_mode == MSM_BOOT_MODE__RECOVERY)
-#endif
     {
         input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR, points.z);
     } else {
@@ -954,11 +950,7 @@ static void tp_async_work_callback(void)
     if (ts == NULL)
         return;
 
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-    if ((ts->boot_mode == META_BOOT || ts->boot_mode == FACTORY_BOOT))
-#else
     if ((ts->boot_mode == MSM_BOOT_MODE__FACTORY || ts->boot_mode == MSM_BOOT_MODE__RF || ts->boot_mode == MSM_BOOT_MODE__WLAN))
-#endif
     {
         TPD_INFO("%s: in ftm mode, no need to call back\n", __func__);
         return;
@@ -1054,9 +1046,6 @@ static void tp_work_func_unlock(struct touchpanel_data *ts)
     }
 }
 
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-extern void primary_display_esd_check_enable(int enable);
-#endif
 void __attribute__((weak)) display_esd_check_enable_bytouchpanel(bool enable) {return;}
 
 static void tp_fw_update_work(struct work_struct *work)
@@ -1093,9 +1082,6 @@ static void tp_fw_update_work(struct work_struct *work)
     }
 
     display_esd_check_enable_bytouchpanel(0);
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-    primary_display_esd_check_enable(0); //avoid rst pulled to low while updating
-#endif
 
     if (ts->ts_ops->fw_update) {
         do {
@@ -1182,9 +1168,6 @@ EXIT:
     ts->loading_fw = false;
 
     display_esd_check_enable_bytouchpanel(1);
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-    primary_display_esd_check_enable(1); //avoid rst pulled to low while updating
-#endif
 
     if (ts->esd_handle_support) {
         esd_handle_switch(&ts->esd_info, true);
@@ -1344,11 +1327,7 @@ void switch_usb_state(int usb_state)
         return;
     }
 
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-    if ((g_tp->boot_mode == META_BOOT || g_tp->boot_mode == FACTORY_BOOT))
-#else
     if ((g_tp->boot_mode == MSM_BOOT_MODE__FACTORY || g_tp->boot_mode == MSM_BOOT_MODE__RF || g_tp->boot_mode == MSM_BOOT_MODE__WLAN))
-#endif
     {
         TPD_INFO("Ftm mode, do not switch usb state\n");
         return;
@@ -2098,11 +2077,7 @@ static ssize_t proc_fw_update_write(struct file *file, const char __user *page, 
     if (size > 2)
         return size;
 
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-    if (ts->boot_mode == KERNEL_POWER_OFF_CHARGING_BOOT)
-#else
     if (ts->boot_mode == MSM_BOOT_MODE__CHARGE)
-#endif
     {
         TPD_INFO("boot mode is MSM_BOOT_MODE__CHARGE,not need update tp firmware\n");
         return size;
@@ -4617,11 +4592,7 @@ int register_common_touch_device(struct touchpanel_data *pdata)
 
     //step9 : FTM process
     ts->boot_mode = get_boot_mode();
-#ifdef CONFIG_TOUCHPANEL_MTK_PLATFORM
-    if ((ts->boot_mode == META_BOOT || ts->boot_mode == FACTORY_BOOT))
-#else
     if ((ts->boot_mode == MSM_BOOT_MODE__FACTORY || ts->boot_mode == MSM_BOOT_MODE__RF || ts->boot_mode == MSM_BOOT_MODE__WLAN))
-#endif
     {
         ts->ts_ops->ftm_process(ts->chip_data);
         ret = -EFTM;
@@ -5295,39 +5266,6 @@ static int fb_notifier_callback(struct notifier_block *self, unsigned long event
 }
 #endif
 
-#if defined CONFIG_TOUCHPANEL_MTK_PLATFORM || defined CONFIG_TOUCHPANEL_NEW_SET_IRQ_WAKE
-void tp_i2c_suspend(struct touchpanel_data *ts)
-{
-    ts->i2c_ready = false;
-    if (ts->black_gesture_support) {
-        if (ts->gesture_enable == 1) {
-            /*enable gpio wake system through interrupt*/
-            enable_irq_wake(ts->irq);
-            return;
-        }
-    }
-    disable_irq(ts->irq);
-}
-
-void tp_i2c_resume(struct touchpanel_data *ts)
-{
-    if (ts->black_gesture_support) {
-        if (ts->gesture_enable == 1) {
-            /*disable gpio wake system through intterrupt*/
-            disable_irq_wake(ts->irq);
-            goto OUT;
-        }
-    }
-    enable_irq(ts->irq);
-
-OUT:
-    ts->i2c_ready = true;
-    if (ts->spurious_fp_support && ts->spuri_fp_touch.fp_trigger) {
-        wake_up_interruptible(&waiter);
-    }
-}
-
-#else
 void tp_i2c_suspend(struct touchpanel_data *ts)
 {
     ts->i2c_ready = false;
@@ -5354,7 +5292,6 @@ void tp_i2c_resume(struct touchpanel_data *ts)
         wake_up_interruptible(&waiter);
     }
 }
-#endif
 
 struct touchpanel_data *common_touch_data_alloc(void)
 {
@@ -5402,19 +5339,4 @@ void clear_view_touchdown_flag(void)
     if (g_tp) {
         g_tp->view_area_touched = 0;
     }
-}
-
-static oem_verified_boot_state oem_verifiedbootstate = OEM_VERIFIED_BOOT_STATE_LOCKED;
-bool is_oem_unlocked(void)
-{
-    return (oem_verifiedbootstate == OEM_VERIFIED_BOOT_STATE_UNLOCKED);
-}
-int __init get_oem_verified_boot_state(void)
-{
-    if (strstr(boot_command_line, "androidboot.verifiedbootstate=orange")) {
-        oem_verifiedbootstate = OEM_VERIFIED_BOOT_STATE_UNLOCKED;
-    } else {
-        oem_verifiedbootstate = OEM_VERIFIED_BOOT_STATE_LOCKED;
-    }
-    return 0;
 }
