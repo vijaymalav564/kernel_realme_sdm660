@@ -1,6 +1,10 @@
 # MSM Machine Support
-
-snd-soc-hostless-pcm-objs := msm-pcm-hostless.o
+#ifndef CONFIG_PRODUCT_REALME_RMX1801
+#Jianfeng.Qiu@PSW.MM.AudioDriver.Machine, 2017/12/19, Modify for card register fail
+#snd-soc-hostless-pcm-objs := msm-pcm-hostless.o
+#else /* CONFIG_PRODUCT_REALME_RMX1801 */
+snd-soc-hostless-pcm-objs := msm-pcm-hostless.o audio_test_mod.o
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 obj-$(CONFIG_SND_SOC_MSM_HOSTLESS_PCM) += snd-soc-hostless-pcm.o
 
 obj-$(CONFIG_SND_SOC_MSM_QDSP6V2_INTF) += qdsp6v2/
