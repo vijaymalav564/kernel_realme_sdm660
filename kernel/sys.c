@@ -65,6 +65,12 @@
 #include <asm/io.h>
 #include <asm/unistd.h>
 
+#if defined(CONFIG_PRODUCT_REALME_RMX1801) && defined(CONFIG_OPPO_HEALTHINFO)
+// jiheng.xie@PSW.TECH.KERNEL, 2018/12/28
+// Add for rlimit info
+#include <soc/oppo/oppo_healthinfo.h>
+#endif
+
 #ifndef SET_UNALIGN_CTL
 # define SET_UNALIGN_CTL(a, b)	(-EINVAL)
 #endif
@@ -1356,12 +1362,27 @@ static void rlim64_to_rlim(const struct rlimit64 *rlim64, struct rlimit *rlim)
 		rlim->rlim_max = (unsigned long)rlim64->rlim_max;
 }
 
+#if defined(CONFIG_PRODUCT_REALME_RMX1801) && defined(CONFIG_OPPO_HEALTHINFO)
+// jiheng.xie@PSW.TECH.KERNEL, 2018/12/28
+// Add for rlimit info
+extern bool ohm_rlimit_logon;
+extern bool ohm_rlimit_trig;
+extern void ohm_action_trig(int type);
+#endif
+
 /* make sure you are allowed to change @tsk limits before calling this */
 int do_prlimit(struct task_struct *tsk, unsigned int resource,
 		struct rlimit *new_rlim, struct rlimit *old_rlim)
 {
 	struct rlimit *rlim;
 	int retval = 0;
+
+#if defined(CONFIG_PRODUCT_REALME_RMX1801) && defined(CONFIG_OPPO_HEALTHINFO)
+// jiheng.xie@PSW.TECH.KERNEL, 2018/12/28
+// Add for rlimit info
+	int rt_changed = 0;
+	static unsigned long record_stack_limit = 0;
+#endif
 
 	if (resource >= RLIM_NLIMITS)
 		return -EINVAL;
@@ -1404,10 +1425,29 @@ int do_prlimit(struct task_struct *tsk, unsigned int resource,
 	if (!retval) {
 		if (old_rlim)
 			*old_rlim = *rlim;
-		if (new_rlim)
+		if (new_rlim){
+#if defined(CONFIG_PRODUCT_REALME_RMX1801) && defined(CONFIG_OPPO_HEALTHINFO)
+// jiheng.xie@PSW.TECH.KERNEL, 2018/12/28
+// Add for rlimit info
+			rt_changed = 1;
+#endif
 			*rlim = *new_rlim;
+			}
 	}
 	task_unlock(tsk->group_leader);
+#if defined(CONFIG_PRODUCT_REALME_RMX1801) && defined(CONFIG_OPPO_HEALTHINFO)
+// jiheng.xie@PSW.TECH.KERNEL, 2018/12/28
+// Add for rlimit info
+		if ((is_compat_task()) && (rt_changed) && (resource == RLIMIT_STACK) && (record_stack_limit < rlim->rlim_cur)) {
+			record_stack_limit = rlim->rlim_cur;
+			if (ohm_rlimit_logon) {
+				ohm_debug("task comm:%s set RLIMIT_STACK to %lu", current->comm, record_stack_limit);
+			}
+			if (ohm_rlimit_trig) {
+				ohm_action_trig(OHM_RLIMIT_MON);
+			}
+		}
+#endif
 
 	/*
 	 * RLIMIT_CPU handling.   Note that the kernel fails to return an error
