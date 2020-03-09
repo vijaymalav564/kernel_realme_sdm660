@@ -1,3 +1,4 @@
+ifneq ($(CONFIG_PRODUCT_REALME_SDM660),y)
 ifeq ($(CONFIG_BUILD_ARM64_DT_OVERLAY),y)
 dtbo-$(CONFIG_ARCH_MSM8996) += \
 	msm8996-mtp-overlay.dtbo \
@@ -211,7 +212,11 @@ dtb-$(CONFIG_ARCH_MSM8998) += msm8998-sim.dtb \
 endif
 
 dtb-$(CONFIG_ARCH_MSMHAMSTER) += msmhamster-rumi.dtb
+endif
 
+ifeq ($(CONFIG_PRODUCT_REALME_SDM660),y)
+dtb-$(CONFIG_PRODUCT_REALME_RMX1801) += sdm660-pm660a-mtp-RMX1801.dtb
+else
 dtb-$(CONFIG_ARCH_SDM660) += sdm660-sim.dtb \
 	sdm660-internal-codec-cdp.dtb \
 	sdm660-internal-codec-mtp.dtb \
@@ -324,6 +329,7 @@ dtb-$(CONFIG_ARCH_SDM630) += sdm630-rumi.dtb \
 	sdm455-cdp.dtb \
 	sdm455-rcm.dtb \
 	sdm455-internal-codec-rcm.dtb
+endif
 
 ifeq ($(CONFIG_ARM64),y)
 always          := $(dtb-y)

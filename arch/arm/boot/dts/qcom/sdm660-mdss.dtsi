@@ -370,7 +370,10 @@
 			reg-names = "dsi_ctrl", "dsi_phy", "mmss_misc_phys";
 
 			qcom,timing-db-mode;
-			wqhd-vddio-supply = <&pm660_l11>;
+			/*#ifdef CONFIG_PRODUCT_REALME_RMX1801*/
+			/* remove by hongbo.dai@camera 20171116, this ldo only use for camera */
+			/* wqhd-vddio-supply = <&pm660_l11>; */
+			/*#endif*/
 			vdda-3p3-supply = <&pm660l_l6>;
 			lab-supply = <&lcdb_ldo_vreg>;
 			ibb-supply = <&lcdb_ncp_vreg>;
@@ -421,7 +424,10 @@
 			reg-names = "dsi_ctrl", "dsi_phy", "mmss_misc_phys";
 
 			qcom,timing-db-mode;
-			wqhd-vddio-supply = <&pm660_l11>;
+			/*#ifdef CONFIG_PRODUCT_REALME_RMX1801*/
+			/* remove by hongbo.dai@camera 20171116, this ldo only use for camera */
+			/* wqhd-vddio-supply = <&pm660_l11>; */
+			/*#endif*/
 			lab-supply = <&lcdb_ldo_vreg>;
 			ibb-supply = <&lcdb_ncp_vreg>;
 			qcom,mdss-mdp = <&mdss_mdp>;

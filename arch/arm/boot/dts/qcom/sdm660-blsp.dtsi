@@ -58,7 +58,10 @@
 		pinctrl-0 = <&i2c_1_active>;
 		pinctrl-1 = <&i2c_1_sleep>;
 		pinctrl-2 = <&i2c_1_bitbang>;
-		status = "disabled";
+		//#ifdef CONFIG_PRODUCT_REALME_RMX1801
+		//Wanghao@BSP.group 2017-1-18 add for enable i2c_1
+		status = "okay";
+		//#endif
 	};
 
 	i2c_2: i2c@c176000 { /* BLSP1 QUP2 */
@@ -84,7 +87,8 @@
 		pinctrl-0 = <&i2c_2_active>;
 		pinctrl-1 = <&i2c_2_sleep>;
 		pinctrl-2 = <&i2c_2_bitbang>;
-		status = "disabled";
+		//Jianchao,Shi@BSP.CHG.Basic, 2016/12/20 change disabled to okay
+		status = "okay";
 	};
 
 	i2c_3: i2c@c177000 { /* BLSP1 QUP3 */
@@ -132,10 +136,17 @@
 			 <&clock_gcc GCC_BLSP1_QUP4_I2C_APPS_CLK>;
 		qcom,i2c-dat = <&tlmm 14 0x00>;
 		qcom,i2c-clk = <&tlmm 15 0x00>;
+		//#ifdef CONFIG_PRODUCT_REALME_RMX1801
+		/*xiang.fei@PSW.MM.AudioDriver.Machine, 2017/01/26,
+		 *Delete for audio config.
+		 */
+		/*
 		pinctrl-names = "i2c_active", "i2c_sleep", "i2c_bitbang";
 		pinctrl-0 = <&i2c_4_active>;
 		pinctrl-1 = <&i2c_4_sleep>;
 		pinctrl-2 = <&i2c_4_bitbang>;
+		*/
+		//#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 		status = "disabled";
 	};
 
@@ -188,7 +199,10 @@
 		pinctrl-0 = <&i2c_6_active>;
 		pinctrl-1 = <&i2c_6_sleep>;
 		pinctrl-2 = <&i2c_6_bitbang>;
-		status = "disabled";
+		//#ifdef CONFIG_PRODUCT_REALME_RMX1801
+		/*xiang.fei@PSW.MM.AudioDriver.Machine, 2017/01/26, Delete for audio config*/
+		//status = "disabled";
+		//#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 	};
 
 	i2c_7: i2c@c1b7000 { /* BLSP2 QUP3 */

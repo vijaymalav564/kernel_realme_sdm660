@@ -203,7 +203,9 @@
 			compatible = "qcom,leds-qpnp";
 			reg = <0xd000 0x100>;
 			label = "rgb";
-
+//#ifndef CONFIG_PRODUCT_REALME_RMX1801
+//rendong.shi@Bsp.boot.device,2016/12/21,Added for button-light			
+/*
 			red_led: qcom,rgb_0 {
 				label = "rgb";
 				qcom,id = <3>;
@@ -220,7 +222,8 @@
 					64 5a 50 46 3c 32 28 1e 14 0a 01];
 				qcom,use-blink;
 			};
-
+*/
+//#endif
 			green_led: qcom,rgb_1 {
 				label = "rgb";
 				qcom,id = <4>;
@@ -229,21 +232,34 @@
 				qcom,pwm-us = <1000>;
 				qcom,max-current = <12>;
 				qcom,default-state = "off";
-				linux,name = "green";
+				//#ifndef CONFIG_PRODUCT_REALME_RMX1801
+				//rendong.shi@Bsp.boot.device,2016/12/21,Added for breathlight
+				linux,name = "button-backlight";
+				//#endif
+				
 			};
-
+//#ifndef CONFIG_PRODUCT_REALME_RMX1801
+//rendong.shi@Bsp.boot.device,2016/12/21,Added for breathlight
 			blue_led: qcom,rgb_2 {
 				label = "rgb";
 				qcom,id = <5>;
 				qcom,mode = "pwm";
 				pwms = <&pm660l_pwm_1 0 0>;
 				qcom,pwm-us = <1000>;
-				qcom,max-current = <12>;
+				qcom,max-current = <3>;
+				qcom,start-idx = <1>;
+				qcom,duty-pcts = [00 00 01 01 02 02 03 03 04 04 05 05 06 06 07 07 08 08 09 09 09];
+				qcom,lut-flags = <0x1f>;
+				qcom,pause-lo = <2000>;
+				qcom,pause-hi = <700>;
+				qcom,ramp-step-ms = <35>;
+				qcom,ratio = <9>;
 				qcom,default-state = "off";
-				linux,name = "blue";
+				qcom,use-blink;
+				linux,name = "white";
 			};
 		};
-
+//#endif
 		pm660l_wled: qcom,leds@d800 {
 			compatible = "qcom,qpnp-wled";
 			reg = <0xd800 0x100>,
@@ -264,7 +280,15 @@
 			qcom,dim-mode = "hybrid";
 			qcom,hyb-thres = <625>;
 			qcom,sync-dly-us = <800>;
-			qcom,fs-curr-ua = <25000>;
+//#ifndef CONFIG_PRODUCT_REALME_RMX1801
+/*Gou shengjun@PSW.MM.Display.LCD.Stability, 2018/07/13,
+ *add for wled current
+*/
+			//qcom,fs-curr-ua = <25000>;
+//#else
+			qcom,fs-curr-ua = <20000>;
+			qcom,en-cabc;
+//#endif CONFIG_PRODUCT_REALME_RMX1801
 			qcom,cons-sync-write-delay-us = <1000>;
 			qcom,led-strings-list = [00 01 02];
 			qcom,loop-auto-gm-en;
@@ -298,7 +322,12 @@
 				qcom,max-current = <1500>;
 				qcom,default-led-trigger = "flash0_trigger";
 				qcom,id = <0>;
+				/*#ifdef CONFIG_PRODUCT_REALME_RMX1801*/
+				/*modify by hongbo.dai@camera,20171213 for dual flash LED*/
+				/*qcom,current-ma = <1000>;*/
+				/*#else*/
 				qcom,current-ma = <1000>;
+				/*#endif*/
 				qcom,duration-ms = <1280>;
 				qcom,ires-ua = <12500>;
 				qcom,hdrm-voltage-mv = <325>;
@@ -311,7 +340,12 @@
 				qcom,max-current = <1500>;
 				qcom,default-led-trigger = "flash1_trigger";
 				qcom,id = <1>;
-				qcom,current-ma = <1000>;
+				/*#ifdef CONFIG_PRODUCT_REALME_RMX1801*/
+				/*modify by hongbo.dai@camera,20171213 for dual flash LED*/
+				/*qcom,current-ma = <1000>;*/
+				/*#else*/
+				qcom,current-ma = <750>;
+				/*#endif*/
 				qcom,duration-ms = <1280>;
 				qcom,ires-ua = <12500>;
 				qcom,hdrm-voltage-mv = <325>;
@@ -337,7 +371,12 @@
 				qcom,max-current = <500>;
 				qcom,default-led-trigger = "torch0_trigger";
 				qcom,id = <0>;
-				qcom,current-ma = <300>;
+				/*#ifndef CONFIG_PRODUCT_REALME_RMX1801*/
+				/*modify by hongbo.dai@Camera 20171001*/
+				/*qcom,current-ma = <300>;*/
+				/*#else*/
+				qcom,current-ma = <200>;
+				/*#endif*/
 				qcom,ires-ua = <12500>;
 				qcom,hdrm-voltage-mv = <325>;
 				qcom,hdrm-vol-hi-lo-win-mv = <100>;
@@ -349,7 +388,12 @@
 				qcom,max-current = <500>;
 				qcom,default-led-trigger = "torch1_trigger";
 				qcom,id = <1>;
-				qcom,current-ma = <300>;
+				/*#ifndef CONFIG_PRODUCT_REALME_RMX1801*/
+				/*modify by hongbo.dai@Camera 20171001*/
+				/*qcom,current-ma = <300>;*/
+				/*#else*/
+				qcom,current-ma = <108>;
+				/*#endif*/
 				qcom,ires-ua = <12500>;
 				qcom,hdrm-voltage-mv = <325>;
 				qcom,hdrm-vol-hi-lo-win-mv = <100>;
@@ -361,7 +405,12 @@
 				qcom,max-current = <500>;
 				qcom,default-led-trigger = "torch2_trigger";
 				qcom,id = <2>;
-				qcom,current-ma = <300>;
+				/*#ifndef CONFIG_PRODUCT_REALME_RMX1801*/
+				/*modify by hongbo.dai@Camera 20171001*/
+				/*qcom,current-ma = <300>;*/
+				/*#else*/
+				qcom,current-ma = <180>;
+				/*#endif*/
 				qcom,ires-ua = <12500>;
 				qcom,hdrm-voltage-mv = <325>;
 				qcom,hdrm-vol-hi-lo-win-mv = <100>;
