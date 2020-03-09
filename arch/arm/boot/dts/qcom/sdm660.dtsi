@@ -307,7 +307,11 @@
 					dev = "/dev/block/platform/soc/c0c4000.sdhci/by-name/vendor";
 					type = "ext4";
 					mnt_flags = "ro,barrier=1,discard";
-					fsmgr_flags = "wait,slotselect,verify";
+//#ifndef CONFIG_PRODUCT_REALME_RMX1801 //Fanhong.Kong@PSW.BSP.CHG,add 2017/10/25 for close AB 
+//					fsmgr_flags = "wait,slotselect,verify";
+//#else/*CONFIG_PRODUCT_REALME_RMX1801*/
+					fsmgr_flags = "wait,verify";
+//#endif/*CONFIG_PRODUCT_REALME_RMX1801*/
 					status = "ok";
 				};
 			};
@@ -334,7 +338,13 @@
 		removed_regions: removed_regions@85800000 {
 			compatible = "removed-dma-pool";
 			no-map;
-			reg = <0x0 0x85800000 0x0 0x3700000>;
+			//luhongyu@BSP.Fingerprint.Basic, 2018/9/29, add to enlarge memory of tz to 62M start
+			//#ifndef CONFIG_PRODUCT_REALME_RMX1801
+			//reg = <0x0 0x85800000 0x0 0x3700000>;
+			//#else
+			reg = <0x0 0x85800000 0x0 0x5300000>;
+			//#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
+			//luhongyu@BSP.Fingerprint.Basic, 2018/9/29, add to enlarge memory of tz to 62M end
 		};
 
 		modem_fw_mem: modem_fw_region@8ac00000 {
@@ -343,23 +353,56 @@
 			reg = <0x0 0x8ac00000 0x0 0x7e00000>;
 		};
 
+		//#ifndef CONFIG_PRODUCT_REALME_RMX1801
+		/*xiang.fei@PSW.MM.AudioDriver.ADSP, 2017/03/02, Modify for adsp image*/
+		/*
 		adsp_fw_mem: adsp_fw_region@92a00000 {
 			compatible = "removed-dma-pool";
 			no-map;
 			reg = <0x0 0x92a00000 0x0 0x1e00000>;
 		};
+		*/
+		//#else /* CONFIG_PRODUCT_REALME_RMX1801 */
+		adsp_fw_mem: adsp_fw_region@92a00000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x0 0x92a00000 0x0 0x2000000>; //increase 2M, 30M -> 32M
+		};
+		//#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 
+		//#ifndef CONFIG_PRODUCT_REALME_RMX1801
+		/*xiang.fei@PSW.MM.AudioDriver.ADSP, 2017/03/02, Modify for pil image*/
+		/*
 		pil_mba_mem: pil_mba_region@94800000 {
 			compatible = "removed-dma-pool";
 			no-map;
 			reg = <0x0 0x94800000 0x0 0x200000>;
 		};
+		*/
+		//#else /* CONFIG_PRODUCT_REALME_RMX1801 */
+		pil_mba_mem: pil_mba_region@94a00000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x0 0x94a00000 0x0 0x200000>; //pil start address +2M
+		};
+		//#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 
+		//#ifndef CONFIG_PRODUCT_REALME_RMX1801
+		/*xiang.fei@PSW.MM.AudioDriver.ADSP, 2017/03/02, Modify for cdsp image*/
+		/*
 		cdsp_fw_mem: cdsp_fw_region@94a00000 {
 			compatible = "removed-dma-pool";
 			no-map;
 			reg = <0x0 0x94a00000 0x0 0x600000>;
 		};
+		*/
+		//#else /* CONFIG_PRODUCT_REALME_RMX1801 */
+		cdsp_fw_mem: cdsp_fw_region@94c00000 {
+			compatible = "removed-dma-pool";
+			no-map;
+			reg = <0x0 0x94c00000 0x0 0x600000>; //cdsp start address +2M
+		};
+		//#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 
 		venus_fw_mem: venus_fw_region {
 			compatible = "shared-dma-pool";
@@ -614,7 +657,11 @@
 		reg = <0x17817000 0x1000>;
 		reg-names = "wdt-base";
 		interrupts = <0 3 0>, <0 4 0>;
-		qcom,bark-time = <11000>;
+		//#ifdef CONFIG_PRODUCT_REALME_RMX1801 //yixue.ge modify bark time to 20s
+		//qcom,bark-time = <11000>;
+		//#else
+		qcom,bark-time = <20000>;
+		//#endif
 		qcom,pet-time = <10000>;
 		qcom,ipi-ping;
 		qcom,wakeup-enable;
@@ -677,6 +724,9 @@
 		clock-names = "core", "iface";
 	};
 
+/*#ifndef CONFIG_PRODUCT_REALME_RMX1801 */
+/* Ziqing.Guo@BSP.Fingerprint.Basic 2017/11/23, Remove for don't need qcom fingerprint sensor*/
+/*
 	qcom,qbt1000 {
 		compatible = "qcom,qbt1000";
 		clock-names = "core", "iface";
@@ -686,6 +736,8 @@
 		qcom,ipc-gpio = <&tlmm 72 0>;
 		qcom,finger-detect-gpio = <&pm660_gpios 11 0>;
 	};
+*/
+/*#endif*/
 
 	qcom,sensor-information {
 		compatible = "qcom,sensor-information";
@@ -859,7 +911,12 @@
 
 		msm_thermal_freq: qcom,vdd-apps-rstr{
 			qcom,vdd-rstr-reg = "vdd-apps";
-			qcom,levels = <1248000>;
+/* #ifdef CONFIG_PRODUCT_REALME_RMX1801
+ * Hui.Fan@SWDP.BSP.Kernel.Driver, 2017-5-11
+ * Update thermal VDD restriction frequency for sdm660
+ */
+			qcom,levels = <1401600>;
+/* #endif */
 			qcom,freq-req;
 		};
 	};
@@ -869,6 +926,8 @@
 		reg = <0x1fe5040 0x28>;
 	};
 
+//#ifndef CONFIG_PRODUCT_REALME_RMX1801 /* Jianchao.Shi@BSP.CHG.Basic, 2017/02/14, sjc Delete for charging */
+/*
 	qcom,bcl {
 		compatible = "qcom,bcl";
 		qcom,bcl-enable;
@@ -883,6 +942,8 @@
 			qcom,soc-low-threshold = <10>;
 		};
 	};
+*/
+//#endif
 
 	qcom,lmh {
 		compatible = "qcom,lmh_v1";
@@ -1583,6 +1644,19 @@
 		qcom,guard-memory;
 	};
 
+    //#ifdef CONFIG_PRODUCT_REALME_RMX1801
+    //Zhengpeng.Tan@NW.AP.NV.892767, 2016/11/30
+    //#ifdef FEATURE_OPPO_NV_BACKUP
+    //add for creating a shared memory with uio for nv backup and restore
+    qcom,oembackup_sharedmem@0 {
+        compatible = "qcom,sharedmem-uio";
+        reg = <0x0 0x00100000>;
+        reg-names = "oembackup";
+        qcom,client-id = <0x00000004>;
+    };
+    //#endif /* FEATURE_OPPO_NV_BACKUP */
+    //#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
+
 	qcom,rmnet-ipa {
 		compatible = "qcom,rmnet-ipa";
 		qcom,rmnet-ipa-ssr;
@@ -2210,7 +2284,13 @@
 
 	qcom_seecom: qseecom@86d00000 {
 		compatible = "qcom,qseecom";
-		reg = <0x86d00000 0x2200000>;
+		//luhongyu@BSP.Fingerprint.Basic, 2018/9/29, add to enlarge memory of tz to 62M start
+		//#ifndef CONFIG_PRODUCT_REALME_RMX1801
+		//reg = <0x86d00000 0x2200000>;
+		//#else
+		reg = <0x86d00000 0x03E00000>;
+		//#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
+		//luhongyu@BSP.Fingerprint.Basic, 2018/9/29, add to enlarge memory of tz to 62M end
 		reg-names = "secapp-region";
 		qcom,hlos-num-ce-hw-instances = <1>;
 		qcom,hlos-ce-hw-instance = <0>;
@@ -2388,7 +2468,10 @@
 			<0 0>;
 
 		lanes-per-direction = <1>;
-		spm-level = <5>;
+//#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//Chunyi.Mei@PSW.BSP.Storage.UFS, 2018-8-15, Remove for UFS leakage 
+		/*spm-level = <5>;*/
+//#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 
 		non-removable;
 		qcom,msm-bus,name = "ufs1";
@@ -2634,6 +2717,8 @@
 #include "msm-audio.dtsi"
 #include "sdm660-audio.dtsi"
 
+//#ifndef CONFIG_PRODUCT_REALME_RMX1801
+//Fanhong.Kong@PSW.BSP.CHG,,2018/05/25,Added for vol_down & vol_up
 &pm660l_gpios {
 	/* GPIO 7 for VOL_UP */
 	gpio@c600 {
@@ -2645,6 +2730,30 @@
 		qcom,out-strength = <1>;
 	};
 };
+//#else
+&pm660l_gpios {
+	/* GPIO 3 for VOL_UP */
+	gpio@c200 {
+		status = "okay";
+		qcom,mode = <0>;
+		qcom,pull = <0>;
+		qcom,vin-sel = <0>;
+		qcom,src-sel = <0>;
+		qcom,out-strength = <1>;
+	};
+	
+	/* GPIO 5 for VOL_DOWN */
+	gpio@c400 {
+		status = "okay";
+		qcom,mode = <0>;
+		qcom,pull = <0>;
+		qcom,vin-sel = <0>;
+		qcom,src-sel = <0>;
+		qcom,out-strength = <1>;
+	};
+};
+
+//#endif
 
 &msm_vidc {
 	qcom,cx-ipeak-data = <&cx_ipeak_lm 4>;
@@ -2656,7 +2765,9 @@
 		status = "okay";
 		compatible = "gpio-keys";
 		input-name = "gpio-keys";
-		pinctrl-names = "tlmm_gpio_key_active","tlmm_gpio_key_suspend";
+//#ifndef CONFIG_PRODUCT_REALME_RMX1801
+//Fanhong.Kong@PSW.BSP.CHG,,2018/05/25,Added for vol_down & vol_up
+/*		pinctrl-names = "tlmm_gpio_key_active","tlmm_gpio_key_suspend";
 		pinctrl-0 = <&gpio_key_active>;
 		pinctrl-1 = <&gpio_key_suspend>;
 
@@ -2675,15 +2786,26 @@
 			linux,code = <0x2fe>;
 			debounce-interval = <15>;
 		};
-
+*/
+//#else
 		vol_up {
 			label = "volume_up";
-			gpios = <&pm660l_gpios 7 0x1>;
+			gpios = <&pm660l_gpios 3 0x1>;
 			linux,input-type = <1>;
 			linux,code = <115>;
 			gpio-key,wakeup;
 			debounce-interval = <15>;
 		};
+		
+		vol_down {
+			label = "volume_down";
+			gpios = <&pm660l_gpios 5 0x1>;
+			linux,input-type = <1>;
+			linux,code = <114>;
+			gpio-key,wakeup;
+			debounce-interval = <15>;
+		};
+//#endif
 	};
 };
 

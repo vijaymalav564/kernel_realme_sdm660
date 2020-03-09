@@ -453,8 +453,13 @@
 		pm660l_bob: regulator-bob {
 			regulator-min-microvolt = <3300000>;
 			regulator-max-microvolt = <3600000>;
-			qcom,pwm-threshold-current = <2000000>;
+//#ifdef CONFIG_PRODUCT_REALME_RMX1801 /* Jianchao.Shi@BSP.CHG.Basic, 2017/05/12, sjc Add for BOB noise*/
+			qcom,bob-pwm-threshold-current = <2000000>;
 			qcom,init-bob-mode = <2>;
+//#else
+//			qcom,pwm-threshold-current = <2000000>;
+//			qcom,init-bob-mode = <2>;
+//#endif
 			status = "okay";
 		};
 
@@ -464,8 +469,13 @@
 			qcom,set = <3>;
 			regulator-min-microvolt = <3300000>;
 			regulator-max-microvolt = <3600000>;
-			qcom,pwm-threshold-current = <2000000>;
+//#ifdef CONFIG_PRODUCT_REALME_RMX1801 /* Jianchao.Shi@BSP.CHG.Basic, 2017/05/12, sjc Add for BOB noise*/
+			qcom,bob-pwm-threshold-current = <2000000>;
 			qcom,init-bob-mode = <2>;
+//#else
+//			qcom,pwm-threshold-current = <2000000>;
+//			qcom,init-bob-mode = <2>;
+//#endif
 			qcom,use-pin-ctrl-voltage1;
 		};
 
@@ -475,8 +485,13 @@
 			qcom,set = <3>;
 			regulator-min-microvolt = <3300000>;
 			regulator-max-microvolt = <3600000>;
-			qcom,pwm-threshold-current = <2000000>;
+//#ifdef CONFIG_PRODUCT_REALME_RMX1801 /* Jianchao.Shi@BSP.CHG.Basic, 2017/05/12, sjc Add for BOB noise*/
+			qcom,bob-pwm-threshold-current = <2000000>;
 			qcom,init-bob-mode = <2>;
+//#else
+//			qcom,pwm-threshold-current = <2000000>;
+//			qcom,init-bob-mode = <2>;
+//#endif
 			qcom,use-pin-ctrl-voltage2;
 		};
 
@@ -486,8 +501,13 @@
 			qcom,set = <3>;
 			regulator-min-microvolt = <3300000>;
 			regulator-max-microvolt = <3600000>;
-			qcom,pwm-threshold-current = <2000000>;
+//#ifdef CONFIG_PRODUCT_REALME_RMX1801 /* Jianchao.Shi@BSP.CHG.Basic, 2017/05/12, sjc Add for BOB noise*/
+			qcom,bob-pwm-threshold-current = <2000000>;
 			qcom,init-bob-mode = <2>;
+//#else
+//			qcom,pwm-threshold-current = <2000000>;
+//			qcom,init-bob-mode = <2>;
+//#endif
 			qcom,use-pin-ctrl-voltage3;
 		};
 	};
@@ -949,4 +969,25 @@
 			};
 		};
 	};
+//#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//rendong.shi@Bsp.Storage.card Added for vdd_en using gpio supply 3V
+	sdhc2_vdd_vreg: sdhc2_vdd_vreg {
+		compatible = "regulator-fixed";
+		regulator-name = "sdhc2_vdd_vreg";
+		startup-delay-us = <0>;
+		enable-active-high;
+		gpio = <&tlmm 52 0>;
+	};
+//#endif
+
+//#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//wanghao@Bsp.Group.TP 2017/09/20 Added for synaptics using gpio supply 2v8
+	touchpanel_vdd: touchpanel_vdd {
+		compatible = "regulator-fixed";
+		regulator-name = "touchpanel_vdd";
+		startup-delay-us = <0>;
+		enable-active-high;
+		gpio = <&tlmm 15 0>;
+	};
+//#endif
 };
