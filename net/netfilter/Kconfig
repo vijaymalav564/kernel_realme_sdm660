@@ -1343,6 +1343,15 @@ config NETFILTER_XT_MATCH_QTAGUID
 
 	  If unsure, say `N'.
 
+config XT_QTAGUID_OPPO_STATS
+	bool 'netstat backup support'
+	depends on NETFILTER_XT_MATCH_QTAGUID=y
+	default y if NETFILTER_XT_MATCH_QTAGUID=y
+	help
+	  This option enables support for backup of netstat before sleep,
+	  it is better for analysing net wakeup issue.
+	  If unsure, say `N'.
+
 config NETFILTER_XT_MATCH_QUOTA
 	tristate '"quota" match support'
 	depends on NETFILTER_ADVANCED
