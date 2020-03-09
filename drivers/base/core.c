@@ -1656,6 +1656,10 @@ int device_online(struct device *dev)
 
 	return ret;
 }
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//jie.cheng@swdp.shanghai, 2016/06/24, export some symbol
+EXPORT_SYMBOL(device_online);
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 
 struct root_device {
 	struct device dev;

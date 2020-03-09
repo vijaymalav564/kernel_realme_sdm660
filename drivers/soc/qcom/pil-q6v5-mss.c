@@ -67,9 +67,21 @@ static void log_modem_sfr(void)
 	wmb();
 }
 
+
+#ifdef CONFIG_RECORD_MDMRST
+//extern wait_queue_head_t mdmrst_wq;
+//extern unsigned int mdmrest_flg;
+extern unsigned int mdmrest_count;
+#endif
+
 static void restart_modem(struct modem_data *drv)
 {
 	log_modem_sfr();
+#ifdef CONFIG_RECORD_MDMRST
+	//mdmrest_flg = 1;
+	//wake_up(&mdmrst_wq);
+	mdmrest_count++;
+#endif
 	drv->ignore_errors = true;
 	subsystem_restart_dev(drv->subsys);
 }

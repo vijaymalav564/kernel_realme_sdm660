@@ -917,10 +917,17 @@ void msm_isp_increment_frame_id(struct vfe_device *vfe_dev,
 			 */
 			if (ms_res->src_sof_mask & (1 <<
 				src_info->dual_hw_ms_info.index)) {
+#ifndef CONFIG_PRODUCT_REALME_RMX1801
+/* Modify by LiuBin at 20170504 for [lower the log level] */
 				pr_err_ratelimited("Frame out of sync on vfe %d\n",
 					vfe_dev->pdev->id);
+#else
+				ISP_DBG("Frame out of sync on vfe %d\n",
+					vfe_dev->pdev->id);
+#endif
 				/* Notify to do reconfig at SW sync drop*/
 				vfe_dev->isp_page->dual_cam_drop_detected = 1;
+
 				/*
 				 * set this isp as async mode to force
 				 *it sync again at the next sof
@@ -2594,12 +2601,38 @@ int msm_isp_ab_ib_update_lpm_mode(struct vfe_device *vfe_dev, void *arg)
 		rc = -1;
 		return rc;
 	}
+	#ifndef CONFIG_PRODUCT_REALME_RMX1801
+	/*modified by yujun.hou@Camera 20171101 for lpm*/
 	if (ab_ib_vote->num_src >= VFE_AXI_SRC_MAX) {
 		pr_err("%s: ab_ib_vote num_src is exceeding limit\n",
 			__func__);
 		rc = -1;
 		return rc;
 	}
+	#else
+	if (ab_ib_vote->num_src > VFE_AXI_SRC_MAX) {
+		pr_err("%s: ab_ib_vote num_src is exceeding limit\n",
+			__func__);
+		rc = -1;
+		return rc;
+	}
+	#endif
+	#ifndef CONFIG_PRODUCT_REALME_RMX1801
+	/*modified by yujun.hou@Camera 20171101 for lpm*/
+	if (ab_ib_vote->num_src >= VFE_AXI_SRC_MAX) {
+		pr_err("%s: ab_ib_vote num_src is exceeding limit\n",
+			__func__);
+		rc = -1;
+		return rc;
+	}
+	#else
+	if (ab_ib_vote->num_src > VFE_AXI_SRC_MAX) {
+		pr_err("%s: ab_ib_vote num_src is exceeding limit\n",
+			__func__);
+		rc = -1;
+		return rc;
+	}
+	#endif
 	if (ab_ib_vote->lpm_mode) {
 		for (i = 0; i < ab_ib_vote->num_src; i++) {
 			stream_info =

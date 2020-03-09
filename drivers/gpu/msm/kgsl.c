@@ -42,6 +42,16 @@
 #include "kgsl_sync.h"
 #include "kgsl_compat.h"
 #include "kgsl_pool.h"
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+/* Xiaori.Yuan@PSW.MM.Display.GPU.Log, 2017/11/25  Add for keylog */
+#include <soc/oppo/mmkey_log.h>
+#endif /*CONFIG_PRODUCT_REALME_RMX1801*/
+
+#if defined(CONFIG_PRODUCT_REALME_RMX1801) && defined(CONFIG_OPPO_HEALTHINFO)
+// jiheng.xie@PSW.TECH.KERNEL, 2018/12/28
+// Add for svm area info monitor
+#include <soc/oppo/oppo_healthinfo.h>
+#endif
 
 #undef MODULE_PARAM_PREFIX
 #define MODULE_PARAM_PREFIX "kgsl."
@@ -4504,6 +4514,13 @@ static unsigned long _get_svm_area(struct kgsl_process_private *private,
 	return result;
 }
 
+#if defined(CONFIG_PRODUCT_REALME_RMX1801) && defined(CONFIG_OPPO_HEALTHINFO)
+// jiheng.xie@PSW.TECH.KERNEL, 2018/12/28
+// Add for svm area info monitor
+extern bool ohm_svm_logon;
+extern bool ohm_svm_trig;
+extern void ohm_action_trig(int type);
+#endif
 static unsigned long
 kgsl_get_unmapped_area(struct file *file, unsigned long addr,
 			unsigned long len, unsigned long pgoff,
@@ -4516,6 +4533,13 @@ kgsl_get_unmapped_area(struct file *file, unsigned long addr,
 	struct kgsl_device *device = dev_priv->device;
 	struct kgsl_mem_entry *entry = NULL;
 
+#if defined(CONFIG_PRODUCT_REALME_RMX1801) && defined(CONFIG_OPPO_HEALTHINFO)
+// jiheng.xie@PSW.TECH.KERNEL, 2018/12/28
+// Add for svm area info monitor
+	static unsigned long prev_jfs = 0;
+	static unsigned long delta_jfs = 0;
+	static atomic_t failed_times = ATOMIC_INIT(0);
+#endif
 	if (vma_offset == (unsigned long) device->memstore.gpuaddr)
 		return get_unmapped_area(NULL, addr, len, pgoff, flags);
 

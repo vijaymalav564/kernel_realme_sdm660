@@ -98,6 +98,15 @@ void ion_reserve(struct ion_platform_data *data);
 struct ion_client *ion_client_create(struct ion_device *dev,
 				     const char *name);
 
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//fangpan@Swdp.shanghai, 2016/02/02, add ion memory status interface
+/**
+ *ion_system_heap_cached_memory() -  get the system heap free memory
+ * @heap:	system heap point
+ */
+extern long ion_system_heap_cached_memory(struct ion_heap *heap);
+#endif
+
 /**
  * ion_client_destroy() -  free's a client and all it's handles
  * @client:	the client
@@ -230,6 +239,18 @@ static inline struct ion_client *ion_client_create(
 {
 	return ERR_PTR(-ENODEV);
 }
+
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//fangpan@Swdp.shanghai, 2016/02/02, add ion memory status interface
+/**
+ *ion_system_heap_cached_memory() -  get the system heap free memory
+ * @heap:	system heap point
+ */
+static inline long ion_system_heap_cached_memory(struct ion_heap *heap)
+{
+	return -ENOMEM;
+}
+#endif
 
 static inline void ion_client_destroy(struct ion_client *client) { }
 

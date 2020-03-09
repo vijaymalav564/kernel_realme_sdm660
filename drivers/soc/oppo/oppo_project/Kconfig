@@ -1,0 +1,11 @@
+
+# ifdef CONFIG_PRODUCT_REALME_RMX1801 
+# yixue.ge add for config oppo software common soft
+      config OPPO_COMMON_SOFT
+      bool "config oppo common software"
+	  help
+		define this config to get project verion from sharemem.
+		Maybe this value is from CDT or dynamic identify by hardware
+		id.
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
+

@@ -521,11 +521,22 @@ void pinmux_disable_setting(struct pinctrl_setting const *setting)
 
 			gname = pctlops->get_group_name(pctldev,
 						setting->data.mux.group);
+#ifndef CONFIG_PRODUCT_REALME_RMX1801
+/* Jianchao.Shi@BSP.CHG.Basic, 2017/05/22, sjc Modify for printk rate */
 			dev_warn(pctldev->dev,
 				 "not freeing pin %d (%s) as part of "
 				 "deactivating group %s - it is already "
 				 "used for some other setting",
 				 pins[i], desc->name, gname);
+#else
+			if (printk_ratelimit()) {
+				dev_warn(pctldev->dev,
+					 "not freeing pin %d (%s) as part of "
+					 "deactivating group %s - it is already "
+					 "used for some other setting",
+					 pins[i], desc->name, gname);
+			}
+#endif
 		}
 	}
 }

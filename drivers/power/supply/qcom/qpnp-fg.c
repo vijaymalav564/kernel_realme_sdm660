@@ -248,7 +248,7 @@ static struct fg_mem_setting settings[FG_MEM_SETTING_MAX] = {
 	SETTING(BCL_MH_THRESHOLD, 0x47C,   3,      752),
 	SETTING(TERM_CURRENT,	 0x40C,   2,      250),
 	SETTING(CHG_TERM_CURRENT, 0x4F8,   2,      250),
-	SETTING(IRQ_VOLT_EMPTY,	 0x458,   3,      3100),
+	SETTING(IRQ_VOLT_EMPTY,	 0x458,   3,      2900),// default 3100, modify for low temp and soc, flash may cause empty irq lead soc jump to 0.
 	SETTING(CUTOFF_VOLTAGE,	 0x40C,   0,      3200),
 	SETTING(VBAT_EST_DIFF,	 0x000,   0,      30),
 	SETTING(DELTA_SOC,	 0x450,   3,      1),
@@ -5422,8 +5422,15 @@ static irqreturn_t fg_empty_soc_irq_handler(int irq, void *_chip)
 		goto done;
 	}
 
+    #ifndef CONFIG_PRODUCT_REALME_RMX1801
+    // wenbin.liu@BSP.CHG.Gauge, 2016/12/07
+    // Add for trace empty soc IRQ
 	if (fg_debug_mask & FG_IRQS)
 		pr_info("triggered 0x%x\n", soc_rt_sts);
+    #else
+    pr_err("triggered 0x%x\n", soc_rt_sts);
+    #endif /*CONFIG_PRODUCT_REALME_RMX1801*/
+
 	if (fg_is_batt_empty(chip)) {
 		fg_stay_awake(&chip->empty_check_wakeup_source);
 		schedule_delayed_work(&chip->check_empty_work,

@@ -5661,6 +5661,28 @@ exit:
 	return ret;
 }
 
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//Shengjun.Gou@PSW.MM.Display.LCD.Feature, 2018/01/03,
+//add for dynamic mipi dsi clk
+int mdss_mdp_ctl_update_dsitiming(struct mdss_mdp_ctl *ctl, u32 bitrate)
+{
+	int ret = 0;
+	struct mdss_mdp_ctl *sctl = NULL;
+
+	pr_debug("%s: timing = %d\n", __func__, bitrate);
+	mutex_lock(&ctl->offlock);
+
+	sctl = mdss_mdp_get_split_ctl(ctl);
+
+	if (ctl->ops.config_dsitiming_fnc)
+		ret = ctl->ops.config_dsitiming_fnc(ctl, sctl, bitrate);
+
+	mutex_unlock(&ctl->offlock);
+	pr_debug("%s: timing = %d\n", __func__, bitrate);
+	return ret;
+}
+#endif /*CONFIG_PRODUCT_REALME_RMX1801*/
+
 int mdss_mdp_display_wait4comp(struct mdss_mdp_ctl *ctl)
 {
 	int ret;

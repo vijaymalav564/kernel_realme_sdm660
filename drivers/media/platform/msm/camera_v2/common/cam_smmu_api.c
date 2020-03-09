@@ -1073,8 +1073,15 @@ static int cam_smmu_map_buffer_and_add_to_list(int idx, int ion_fd,
 		goto err_detach;
 	}
 
-	rc = msm_dma_map_sg_lazy(iommu_cb_set.cb_info[idx].dev, table->sgl,
-			table->nents, dma_dir, buf);
+	if (!strcmp(iommu_cb_set.cb_info[idx].name, "jpeg_enc0") ||
+		!strcmp(iommu_cb_set.cb_info[idx].name, "jpeg_dma")) {
+		CDBG("This is jpeg don't do lazy map %s\n", iommu_cb_set.cb_info[idx].name);
+		rc = msm_dma_map_sg(iommu_cb_set.cb_info[idx].dev, table->sgl,
+		table->nents, dma_dir, buf);
+	} else {
+		rc = msm_dma_map_sg_lazy(iommu_cb_set.cb_info[idx].dev, table->sgl,
+		table->nents, dma_dir, buf);
+	}
 	if (rc != table->nents) {
 		pr_err("Error: msm_dma_map_sg_lazy failed\n");
 		rc = -ENOMEM;

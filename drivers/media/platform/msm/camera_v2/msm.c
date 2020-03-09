@@ -230,7 +230,12 @@ static inline void msm_pm_qos_add_request(void)
 
 static void msm_pm_qos_remove_request(void)
 {
+#ifndef CONFIG_PRODUCT_REALME_RMX1801
+/*modified by Jinshui.Liu@Camera 20160827 for [less log]*/
 	pr_info("%s: remove request", __func__);
+#else
+	pr_debug("%s: remove request", __func__);
+#endif
 	if (!atomic_cmpxchg(&qos_add_request_done, 1, 0))
 		return;
 	pm_qos_remove_request(&msm_v4l2_pm_qos_request);
@@ -238,8 +243,14 @@ static void msm_pm_qos_remove_request(void)
 
 void msm_pm_qos_update_request(int val)
 {
+#ifndef CONFIG_PRODUCT_REALME_RMX1801
+/*modified by Jinshui.Liu@Camera 20160827 for [less log]*/
 	pr_info("%s: update request %d", __func__, val);
 	msm_pm_qos_add_request();
+#else
+	pr_debug("%s: update request %d", __func__, val);
+	msm_pm_qos_add_request();
+#endif
 	pm_qos_update_request(&msm_v4l2_pm_qos_request, val);
 }
 
@@ -1311,11 +1322,58 @@ static const struct file_operations logsync_fops = {
 		.write = write_logsync,
 };
 
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+#define O_CAM_DBG_BUF_SIZE 64
+#define O_CAM_DBG_FILE "o_cam_dbg"
+#define O_CAM_DBG_STRING "o_cam_dbg_type"
+/*Jinshui.Liu@Camera.Driver, 2017/08/21, add for [oppo camera debug dump]*/
+static ssize_t o_camera_debug_proc_write(struct file *filp, const char __user *buff,
+		size_t len, loff_t *data)
+{
+	char buf[O_CAM_DBG_BUF_SIZE] = {0};
+	char *kill = NULL;
+
+	if (len > O_CAM_DBG_BUF_SIZE)
+		len = O_CAM_DBG_BUF_SIZE;
+	if (copy_from_user(buf, buff, len)) {
+		pr_err("%s %d:proc write error.\n", __func__, __LINE__);
+		return -EFAULT;
+	} else {
+		pr_err("%s %d: debug type %s, len %lu\n", __func__, __LINE__, buf, len);
+		if (!strncmp(buf, O_CAM_DBG_STRING, (strlen(O_CAM_DBG_STRING)))) {
+			rcu_read_unlock();
+			panic_on_oops = 1;
+			wmb();
+			*kill = 1;
+		} else {
+			pr_err("%s %d: unkonwn debug type %s\n", __func__, __LINE__, buf);
+		}
+	}
+
+	return len;
+}
+
+static ssize_t o_camera_debug_proc_read(struct file *filp, char __user *buff,
+		size_t len, loff_t *data)
+{
+	return simple_read_from_buffer(buff, len, data, "o_cam_dbg_type", 1);
+}
+
+static const struct file_operations o_camera_debug_fops = {
+	.owner = THIS_MODULE,
+	.read = o_camera_debug_proc_read,
+	.write = o_camera_debug_proc_write,
+};
+#endif
 static int msm_probe(struct platform_device *pdev)
 {
 	struct msm_video_device *pvdev = NULL;
 	static struct dentry *cam_debugfs_root;
 	int rc = 0;
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+	/*Jinshui.Liu@Camera.Driver, 2017/08/21, add for [oppo camera debug dump]*/
+	struct proc_dir_entry *proc_entry = NULL;
+#endif
 
 	msm_v4l2_dev = kzalloc(sizeof(*msm_v4l2_dev),
 		GFP_KERNEL);
@@ -1419,6 +1477,15 @@ static int msm_probe(struct platform_device *pdev)
 
 	of_property_read_u32(pdev->dev.of_node,
 		"qcom,gpu-limit", &gpu_limit);
+
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+	/*Jinshui.Liu@Camera.Driver, 2017/08/21, add for [oppo camera debug dump]*/
+	proc_entry = proc_create_data(O_CAM_DBG_FILE, 0666, NULL,&o_camera_debug_fops, NULL);
+	if (proc_entry == NULL) {
+		rc = -ENOMEM;
+		pr_err("%s: Error! Couldn't create O_CAM_DBG_FILE proc entry\n", __func__);
+	}
+#endif
 
 	goto probe_end;
 
