@@ -50,6 +50,11 @@
 #include <asm/uaccess.h>
 
 #include "queue.h"
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//Zhilong.Zhang@OnlineRd.Driver, 2013/10/24, Add for eMMC and DDR device information
+#include <soc/oppo/device_info.h>
+#include <soc/oppo/oppo_project.h>
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 
 MODULE_ALIAS("mmc:block");
 #ifdef MODULE_PARAM_PREFIX
@@ -3100,6 +3105,8 @@ static struct mmc_cmdq_req *mmc_cmdq_prep_dcmd(
 	struct mmc_cmdq_req *cmdq_req = &mqrq->cmdq_req;
 
 	memset(&mqrq->cmdq_req, 0, sizeof(struct mmc_cmdq_req));
+	
+	
 
 	cmdq_req->mrq.data = NULL;
 	cmdq_req->cmd_flags = req->cmd_flags;
@@ -3128,6 +3135,8 @@ static struct mmc_cmdq_req *mmc_blk_cmdq_rw_prep(
 	struct mmc_cmdq_req *cmdq_rq = &mqrq->cmdq_req;
 
 	memset(&mqrq->cmdq_req, 0, sizeof(struct mmc_cmdq_req));
+	
+
 
 	cmdq_rq->tag = req->tag;
 	if (read_dir) {
@@ -3420,6 +3429,14 @@ static void mmc_blk_cmdq_reset_all(struct mmc_host *host, int err)
 		mmc_put_card(card);
 	}
 
+	#ifdef VENODR_EDIT
+	//rendong.shi@BSP.Storage.emmc,2017/4/29,merge debug patch1918004 for emmc issue
+	MMC_TRACE(host, "%s: After reset active_reqs = %lu, clk_requests = %d\n",
+			__func__, ctx_info->active_reqs, host->clk_requests);
+	mmc_stop_tracing(host);
+    #endif
+
+	
 	spin_lock_irq(q->queue_lock);
 	blk_queue_invalidate_tags(q);
 	spin_unlock_irq(q->queue_lock);
@@ -3528,6 +3545,11 @@ static void mmc_blk_cmdq_err(struct mmc_queue *mq)
 	struct mmc_request *mrq = host->err_mrq;
 	struct mmc_cmdq_context_info *ctx_info = &host->cmdq_ctx;
 	struct request_queue *q;
+	#ifdef CONFIG_PRODUCT_REALME_RMX1801
+	//rendong.shi@BSP.Storage.emmc,2017/4/29,merge debug patch1918004 for emmc issue
+	struct request *req = mrq->req;
+	#endif
+	
 	int err, ret;
 	u32 status = 0;
 
@@ -3572,6 +3594,12 @@ static void mmc_blk_cmdq_err(struct mmc_queue *mq)
 	 * the first error out request and handles all other request in flight
 	 * here.
 	 */
+	 
+	 #ifdef CONFIG_PRODUCT_REALME_RMX1801
+	 //rendong.shi@BSP.Storage.emmc,2017/4/29,merge debug patch1918004 for emmc issue
+	 set_bit(8, &ctx_info->curr_state);
+	 #endif
+	 
 	if (test_bit(CMDQ_STATE_REQ_TIMED_OUT, &ctx_info->curr_state)) {
 		err = -ETIMEDOUT;
 	} else if (mrq->data && mrq->data->error) {
@@ -3581,6 +3609,14 @@ static void mmc_blk_cmdq_err(struct mmc_queue *mq)
 		err = mrq->cmd->error;
 	}
 
+	#ifdef CONFIG_PRODUCT_REALME_RMX1801
+	//rendong.shi@BSP.Storage.emmc,2017/4/29,merge debug patch1918004 for emmc issue
+	MMC_TRACE(host, "%s: req_tag: %d, req_addr: 0x%p start: %lu DL: %lu\n, err:%d",
+			__func__, req->tag, (void *)req, req->start_time,
+			req->deadline, err);
+	#endif
+	
+	
 reset:
 	mmc_blk_cmdq_reset_all(host, err);
 	if (mrq->cmdq_req->resp_err)
@@ -4014,9 +4050,31 @@ static int mmc_blk_cmdq_issue_rq(struct mmc_queue *mq, struct request *req)
 	struct mmc_card *card = md->queue.card;
 	struct mmc_host *host = card->host;
 	unsigned int cmd_flags = req ? req->cmd_flags : 0;
+	
+	#ifdef CONFIG_PRODUCT_REALME_RMX1801
+	//rendong.shi@BSP.Storage.emmc,2017/4/29,merge debug patch1918004 for emmc issue
+	unsigned long long diff;
+    ktime_t get_card;
 
+	get_card = ktime_get();
+	#endif
+	
 	mmc_get_card(card);
 
+	#ifdef CONFIG_PRODUCT_REALME_RMX1801
+	//rendong.shi@BSP.Storage.emmc,2017/4/29,merge debug patch1918004 for emmc issue
+	diff = ktime_to_us(ktime_sub(ktime_get(), get_card));
+	if (req) {
+		MMC_TRACE(card->host, "%s: Fetched req_tag: %d, addr: 0x%p\n",
+			__func__, req->tag, (void *)req);
+		MMC_TRACE(card->host, "REQ start: %u DL: %u get_card_delay: %llu\n",
+				jiffies_to_msecs(req->start_time),
+				jiffies_to_msecs(req->deadline), diff);
+	}
+	#endif
+	
+	
+	
 	if (!card->host->cmdq_ctx.active_reqs && mmc_card_doing_bkops(card)) {
 		ret = mmc_cmdq_halt(card->host, true);
 		if (ret)
@@ -4700,13 +4758,49 @@ static int mmc_blk_probe(struct mmc_card *card)
 {
 	struct mmc_blk_data *md, *part_md;
 	char cap_str[10];
+	#ifdef CONFIG_PRODUCT_REALME_RMX1801
+	//Zhilong.Zhang@OnlineRd.Driver, 2013/10/24, Add for eMMC and DDR device information
+	char * manufacturerid;
+    static char temp_version[10];
+	#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 
 	/*
 	 * Check that the card supports the command class(es) we need.
 	 */
+#ifndef CONFIG_PRODUCT_REALME_RMX1801
+//yh@bsp, 2015/08/03, remove for can not initialize specific sdcard(CSD info mismatch card real capability)
 	if (!(card->csd.cmdclass & CCC_BLOCK_READ))
 		return -ENODEV;
+#endif
 
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//Zhilong.Zhang@OnlineRd.Driver, 2013/10/24, Add for eMMC and DDR device information
+	switch (card->cid.manfid) {
+		case  0x11:
+			manufacturerid = "TOSHIBA";
+			break;
+		case  0x15:
+				manufacturerid = "SAMSUNG";
+			break;
+		case  0x45:
+			manufacturerid = "SANDISK";
+			break;
+		case  0x90:
+			manufacturerid = "HYNIX";
+			break;
+		case 0xFE:
+            manufacturerid = "ELPIDA";
+            break;
+                default:
+			manufacturerid = "unknown";
+			break;
+	}
+	if (!strcmp(mmc_card_id(card), "mmc0:0001")) {
+		sprintf(temp_version,"0x%x",card->ext_csd.fw_version);
+		register_device_proc("emmc", mmc_card_name(card), manufacturerid);
+		register_device_proc("emmc_version", mmc_card_name(card), temp_version);
+	}
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 	mmc_fixup_device(card, blk_fixups);
 
 	md = mmc_blk_alloc(card);

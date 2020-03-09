@@ -18,6 +18,16 @@
 #include <linux/types.h>
 #include <trace/events/power.h>
 
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//Yanzhen.Feng@PSW.AD.OppoDebug.702252, 2016/06/21, Add for Sync App and Kernel time
+#include <linux/rtc.h>
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//Yunqing.Zeng@BSP.Power.Basic 2017/11/09 add for wakelock profiler
+#include <linux/kobject.h>
+#include <linux/sysfs.h>
+#include <linux/fb.h>
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 #include "power.h"
 
 /*
@@ -31,6 +41,10 @@ unsigned int pm_wakeup_irq __read_mostly;
 
 /* If set and the system is suspending, terminate the suspend. */
 static bool pm_abort_suspend __read_mostly;
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//Jiemin.Zhu@PSW.AD.Performance.Power.1104067, 2016/05/12, Add for modem wake up source
+extern u16 modem_wakeup_source;
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 
 /*
  * Combined counters of registered wakeup events and wakeup events in progress.
@@ -1093,18 +1107,75 @@ static int wakeup_sources_stats_open(struct inode *inode, struct file *file)
 	return single_open(file, wakeup_sources_stats_show, NULL);
 }
 
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//Yanzhen.Feng@PSW.AD.OppoDebug.702252, 2015/08/14, Add for Sync App and Kernel time
+static ssize_t watchdog_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
+{
+	s32 value;
+	struct timespec ts;
+	struct rtc_time tm;
+
+	if (count == sizeof(s32)) {
+		if (copy_from_user(&value, buf, sizeof(s32)))
+			return -EFAULT;
+	} else if (count <= 11) { /* ASCII perhaps? */
+		char ascii_value[11];
+		unsigned long int ulval;
+		int ret;
+
+		if (copy_from_user(ascii_value, buf, count))
+			return -EFAULT;
+
+		if (count > 10) {
+			if (ascii_value[10] == '\n')
+				ascii_value[10] = '\0';
+			else
+				return -EINVAL;
+		} else {
+			ascii_value[count] = '\0';
+		}
+		ret = kstrtoul(ascii_value, 16, &ulval);
+		if (ret) {
+			pr_debug("%s, 0x%lx, 0x%x\n", ascii_value, ulval, ret);
+			return -EINVAL;
+		}
+		value = (s32)lower_32_bits(ulval);
+	} else {
+		return -EINVAL;
+	}
+
+	getnstimeofday(&ts);
+	rtc_time_to_tm(ts.tv_sec, &tm);
+	pr_warn("!@WatchDog_%d; %d-%02d-%02d %02d:%02d:%02d.%09lu UTC\n",
+		value, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+		tm.tm_hour, tm.tm_min, tm.tm_sec, ts.tv_nsec);
+
+	return count;
+}
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
+
 static const struct file_operations wakeup_sources_stats_fops = {
 	.owner = THIS_MODULE,
 	.open = wakeup_sources_stats_open,
 	.read = seq_read,
 	.llseek = seq_lseek,
 	.release = single_release,
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//Yanzhen.Feng@PSW.AD.OppoDebug.702252, 2016/06/21, Add for Sync App and Kernel time
+	.write          = watchdog_write,
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 };
 
 static int __init wakeup_sources_debugfs_init(void)
 {
+#ifndef CONFIG_PRODUCT_REALME_RMX1801
+//Yanzhen.Feng@PSW.AD.OppoDebug.702252, 2016/06/21,  Modify for Sync App and Kernel time
 	wakeup_sources_stats_dentry = debugfs_create_file("wakeup_sources",
 			S_IRUGO, NULL, NULL, &wakeup_sources_stats_fops);
+#else /* CONFIG_PRODUCT_REALME_RMX1801 */
+	wakeup_sources_stats_dentry = debugfs_create_file("wakeup_sources",
+			S_IRUGO| S_IWUGO, NULL, NULL, &wakeup_sources_stats_fops);
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 	return 0;
 }
 

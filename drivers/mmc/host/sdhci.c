@@ -109,8 +109,27 @@ static void sdhci_dump_state(struct sdhci_host *host)
 		mmc->parent->power.disable_depth);
 }
 
+
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//yixue.ge@BSP.drv 2014-06-04 modify for disable sdcard log
+#ifndef CONFIG_OPPO_DAILY_BUILD
+static int flag = 0;
+#endif
+#endif
+
 static void sdhci_dumpregs(struct sdhci_host *host)
 {
+
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//yixue.ge@BSP.drv 2014-06-04 modify for disable sdcard log
+#ifndef CONFIG_OPPO_DAILY_BUILD
+	if(!flag)
+		flag++;
+	else
+		return;
+#endif
+#endif
+
 	MMC_TRACE(host->mmc,
 		"%s: 0x04=0x%08x 0x06=0x%08x 0x0E=0x%08x 0x30=0x%08x 0x34=0x%08x 0x38=0x%08x\n",
 		__func__,
@@ -120,7 +139,11 @@ static void sdhci_dumpregs(struct sdhci_host *host)
 		sdhci_readl(host, SDHCI_INT_STATUS),
 		sdhci_readl(host, SDHCI_INT_ENABLE),
 		sdhci_readl(host, SDHCI_SIGNAL_ENABLE));
+
+#ifndef CONFIG_PRODUCT_REALME_RMX1801
+	//rendong.shi@BSP.Storage.emmc,2017/4/29,merge debug patch1918004 for emmc issue
 	mmc_stop_tracing(host->mmc);
+#endif
 
 	pr_info(DRIVER_NAME ": =========== REGISTER DUMP (%s)===========\n",
 		mmc_hostname(host->mmc));
@@ -1163,6 +1186,16 @@ void sdhci_send_command(struct sdhci_host *host, struct mmc_command *cmd)
 	unsigned long timeout;
 
 	WARN_ON(host->cmd);
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//yh@bsp, 2015-10-21 Add for special card compatible
+        if(host->mmc->card_stuck_in_programing_status && ((cmd->opcode == MMC_WRITE_MULTIPLE_BLOCK) || (cmd->opcode == MMC_WRITE_BLOCK)))
+        {
+                pr_info("blocked write cmd:%s\n", mmc_hostname(host->mmc));
+                cmd->error = -EIO;
+                tasklet_schedule(&host->finish_tasklet);
+                return;
+        }
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 
 	/* Wait max 10 ms */
 	timeout = 10000;
@@ -2187,6 +2220,11 @@ static void sdhci_hw_reset(struct mmc_host *mmc)
 
 	if (host->ops && host->ops->hw_reset)
 		host->ops->hw_reset(host);
+	#ifdef CONFIG_PRODUCT_REALME_RMX1801
+	//rendong.shi@BSP.Storage.emmc,2017/4/29,merge debug patch1918004 for emmc issue
+	else
+		MMC_TRACE(mmc, "%s: sdhci_ops->hw_reset is NULL\n", __func__);
+	#endif
 }
 
 static int sdhci_get_ro(struct mmc_host *mmc)

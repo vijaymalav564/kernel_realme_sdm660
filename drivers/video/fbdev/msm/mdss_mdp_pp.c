@@ -672,8 +672,16 @@ static int pp_update_pcc_pipe_setup(struct mdss_mdp_pipe *pipe, u32 location);
 static void mdss_mdp_hist_irq_set_mask(u32 irq);
 static void mdss_mdp_hist_irq_clear_mask(u32 irq);
 static void mdss_mdp_hist_intr_notify(u32 disp);
+#ifndef CONFIG_PRODUCT_REALME_RMX1801
+/*Guoqiang.jiang@PSW.MM.Display.LCD.Stability, 2018/10/15,
+ *add for set dither config in screen lock to solve water ripple.
+ */
 static int mdss_mdp_panel_default_dither_config(struct msm_fb_data_type *mfd,
 					u32 panel_bpp);
+#else
+int mdss_mdp_panel_default_dither_config(struct msm_fb_data_type *mfd,
+					u32 panel_bpp);
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 static int mdss_mdp_limited_lut_igc_config(struct msm_fb_data_type *mfd);
 static inline int pp_validate_dspp_mfd_block(struct msm_fb_data_type *mfd,
 					int block);
@@ -4663,8 +4671,16 @@ enhist_config_exit:
 	return ret;
 }
 
+#ifndef CONFIG_PRODUCT_REALME_RMX1801
+/*Guoqiang.jiang@PSW.MM.Display.LCD.Stability, 2018/10/15,
+ *add for set dither config in screen lock to solve water ripple.
+ */
 static int mdss_mdp_panel_default_dither_config(struct msm_fb_data_type *mfd,
 					u32 panel_bpp)
+#else
+int mdss_mdp_panel_default_dither_config(struct msm_fb_data_type *mfd,
+					u32 panel_bpp)
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 {
 	int ret = 0;
 	struct mdp_dither_cfg_data dither;

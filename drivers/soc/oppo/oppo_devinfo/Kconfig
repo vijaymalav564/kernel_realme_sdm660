@@ -1,0 +1,9 @@
+
+# ifdef CONFIG_PRODUCT_REALME_RMX1801 
+# yixue.ge add for config oppo software devinfo soft
+      config OPPO_DEVICE_IFNO
+      bool "config oppo devinfo software"
+	  help
+		define this config to compile devinfo.c for device register
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
+
