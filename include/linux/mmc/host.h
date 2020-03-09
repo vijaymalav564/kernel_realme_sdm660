@@ -531,7 +531,10 @@ struct mmc_host {
 	struct task_struct	*sdio_irq_thread;
 	bool			sdio_irq_pending;
 	atomic_t		sdio_irq_thread_abort;
-
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//yh@bsp, 2015-10-21 Add for special card compatible
+	bool                    card_stuck_in_programing_status;
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 	mmc_pm_flag_t		pm_flags;	/* requested pm features */
 
 	struct led_trigger	*led;		/* activity led */
