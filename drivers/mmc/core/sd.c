@@ -1175,9 +1175,16 @@ static void mmc_sd_remove(struct mmc_host *host)
 	mmc_exit_clk_scaling(host);
 	mmc_sd_dereg_temp_control_clk_scaling(host);
 	mmc_remove_card(host->card);
-
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+/*yixue.ge@psw.bsp.kernel 2017-07-31
+   modify for bug 1061371 bad tcard can make system creash
+*/
+	host->card = NULL;
+    mmc_claim_host(host);
+#else /*CONFIG_PRODUCT_REALME_RMX1801*/
 	mmc_claim_host(host);
 	host->card = NULL;
+#endif /*CONFIG_PRODUCT_REALME_RMX1801*/
 	mmc_release_host(host);
 }
 
@@ -1245,6 +1252,11 @@ static void mmc_sd_detect(struct mmc_host *host)
 		       __func__, mmc_hostname(host), err);
 		err = _mmc_detect_card_removed(host);
 	}
+#if defined(MOUNT_EXSTORAGE_IF)
+	/*ye.zhang@BSP, 2016-05-01, add for CTSI support external storage or not*/
+	if (retries)
+		err = _mmc_detect_card_removed(host);
+#endif//MOUNT_EXSTORAGE_IF
 #else
 	err = _mmc_detect_card_removed(host);
 #endif

@@ -22,13 +22,38 @@
 #include "mdss_mdp.h"
 #include "mdss_debug.h"
 
+
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+/*
+ * Guoqiang.Jiang@PSW.MM.Display.LCD.Stability, 2018/10/31,
+ * add for sdm660 open xlog panic off
+*/
+#ifdef CONFIG_FB_MSM_MDSS_XLOG_DEBUG
+#undef CONFIG_FB_MSM_MDSS_XLOG_DEBUG
+#endif /* CONFIG_FB_MSM_MDSS_XLOG_DEBUG */
+
+#if defined(CONFIG_OPPO_DAILY_BUILD) || defined(CONFIG_OPPO_SPECIAL_BUILD)
+#define CONFIG_FB_MSM_MDSS_XLOG_DEBUG
+#endif /* defined(CONFIG_OPPO_DAILY_BUILD) || defined(CONFIG_OPPO_SPECIAL_BUILD) */
+
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
+
 #ifdef CONFIG_FB_MSM_MDSS_XLOG_DEBUG
 #define XLOG_DEFAULT_ENABLE 1
 #else
 #define XLOG_DEFAULT_ENABLE 0
 #endif
 
+#ifndef CONFIG_PRODUCT_REALME_RMX1801
+/*
+ * Guoqiang.Jiang@PSW.MM.Display.LCD.Stability, 2018/10/31,
+ * add for sdm660 open xlog panic off
+*/
 #define XLOG_DEFAULT_PANIC 1
+#else /* CONFIG_PRODUCT_REALME_RMX1801 */
+#define XLOG_DEFAULT_PANIC 0
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
+
 #define XLOG_DEFAULT_REGDUMP 0x2 /* dump in RAM */
 #define XLOG_DEFAULT_DBGBUSDUMP 0x2 /* dump in RAM */
 #define XLOG_DEFAULT_VBIF_DBGBUSDUMP 0x2 /* dump in RAM */

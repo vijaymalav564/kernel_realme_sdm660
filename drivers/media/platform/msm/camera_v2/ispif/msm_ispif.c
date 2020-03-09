@@ -436,8 +436,9 @@ static int msm_ispif_reset_hw(struct ispif_device *ispif)
 	int rc = 0;
 	long timeout = 0;
 	struct clk *reset_clk1[ARRAY_SIZE(ispif_8626_reset_clk_info)];
-	ispif->clk_idx = 0;
+	uint32_t ispifIrqStatus;
 
+	ispif->clk_idx = 0;
 	/* Turn ON VFE regulators before enabling the vfe clocks */
 	rc = msm_ispif_set_regulators(ispif->vfe_vdd, ispif->vfe_vdd_count, 1);
 	if (rc < 0)
@@ -475,9 +476,18 @@ static int msm_ispif_reset_hw(struct ispif_device *ispif)
 	CDBG("%s: VFE0 done\n", __func__);
 
 	if (timeout <= 0) {
-		rc = -ETIMEDOUT;
-		pr_err("%s: VFE0 reset wait timeout\n", __func__);
-		goto clk_disable;
+		ispifIrqStatus = msm_camera_io_r(ispif->base +
+			ISPIF_VFE_m_IRQ_STATUS_0(VFE0));
+		if (ispifIrqStatus & RESET_DONE_IRQ) {
+			if (atomic_dec_and_test(&ispif->reset_trig[VFE0]))
+				pr_err("%s timeout error but irq status reset irq 0x%x",
+				__func__, ispifIrqStatus);
+			} else {
+			rc = -ETIMEDOUT;
+			pr_err("%s: VFE0 reset wait timeout 0x%x\n", __func__,
+				ispifIrqStatus);
+			goto clk_disable;
+		}
 	}
 
 	if (ispif->hw_num_isps > 1) {
@@ -489,8 +499,16 @@ static int msm_ispif_reset_hw(struct ispif_device *ispif)
 				msecs_to_jiffies(500));
 		CDBG("%s: VFE1 done\n", __func__);
 		if (timeout <= 0) {
-			pr_err("%s: VFE1 reset wait timeout\n", __func__);
-			rc = -ETIMEDOUT;
+			ispifIrqStatus = msm_camera_io_r(ispif->base +
+				ISPIF_VFE_m_IRQ_STATUS_0(VFE1));
+			if (ispifIrqStatus & RESET_DONE_IRQ) {
+				if (atomic_dec_and_test(&ispif->reset_trig[VFE1]))
+					pr_err("%s timeout error but irq status reset irq 0x%x",
+					__func__, ispifIrqStatus);
+			} else {
+				pr_err("%s: VFE1 reset wait timeout 0x%x\n", __func__, ispifIrqStatus);
+				rc = -ETIMEDOUT;
+			}
 		}
 	}
 
@@ -1457,8 +1475,14 @@ static void ispif_process_irq(struct ispif_device *ispif,
 	if (out[vfe_id].ispifIrqStatus0 &
 			ISPIF_IRQ_STATUS_PIX_SOF_MASK) {
 		if (ispif->ispif_sof_debug < ISPIF_SOF_DEBUG_COUNT)
+#ifndef CONFIG_PRODUCT_REALME_RMX1801
+			/*Modify by Zhengrong.Zhang@Camera 20160813 for debug*/
 			pr_err("%s: PIX0 frame id: %u\n", __func__,
 				ispif->sof_count[vfe_id].sof_cnt[PIX0]);
+#else
+			pr_err("%s: PIX0 frame id[vfe %d]: %u\n", __func__,
+				vfe_id, ispif->sof_count[vfe_id].sof_cnt[PIX0]);
+#endif
 		ispif->sof_count[vfe_id].sof_cnt[PIX0]++;
 		ispif->ispif_sof_debug++;
 	}
@@ -1783,6 +1807,10 @@ static int msm_ispif_init(struct ispif_device *ispif,
 	if (rc)
 		goto error_ahb;
 	ispif->ispif_state = ISPIF_POWER_UP;
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+	/*Modify by Zhengrong.Zhang@Camera 20160813 for debug*/
+	ispif->ispif_sof_debug = 0;
+#endif
 	return 0;
 
 error_ahb:
@@ -1803,6 +1831,10 @@ static void msm_ispif_release(struct ispif_device *ispif)
 	if (cam_config_ahb_clk(NULL, 0, CAM_AHB_CLIENT_ISPIF,
 		CAM_AHB_SUSPEND_VOTE) < 0)
 		pr_err("%s: failed to remove vote for AHB\n", __func__);
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+	/*Modify by Zhengrong.Zhang@Camera 20160813 for debug*/
+	ispif->ispif_sof_debug = 0;
+#endif
 }
 
 static long msm_ispif_dispatch_cmd(enum ispif_cfg_type_t cmd,

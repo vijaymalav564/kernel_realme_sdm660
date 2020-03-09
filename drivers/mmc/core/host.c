@@ -615,7 +615,10 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
 	}
 
 	dev_set_name(&host->class_dev, "mmc%d", host->index);
-
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//yh@bsp, 2015-10-21 Add for special card compatible
+        host->card_stuck_in_programing_status = false;
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 	host->parent = dev;
 	host->class_dev.parent = dev;
 	host->class_dev.class = &mmc_host_class;

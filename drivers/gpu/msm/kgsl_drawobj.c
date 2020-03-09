@@ -35,7 +35,10 @@
 #include "kgsl_sync.h"
 #include "kgsl_trace.h"
 #include "kgsl_compat.h"
-
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+/* Xiaori.Yuan@PSW.MM.Display.GPU.Log, 2017/11/25  Add for keylog */
+#include <soc/oppo/mmkey_log.h>
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 /*
  * Define an kmem cache for the memobj & sparseobj structures since we
  * allocate and free them so frequently
