@@ -118,6 +118,16 @@ struct input_value {
  * @devres_managed: indicates that devices is managed with devres framework
  *	and needs not be explicitly unregistered or freed.
  */
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+//Tong.Han@Bsp.Group.Tp,2017/2/27,Modify for shortcut function.
+struct keyup_data {
+	u8 keyup_bits;
+	unsigned long keyup_flag;
+	unsigned int keyup_delay;
+	struct timer_list keyup_timer;
+};
+#endif/*CONFIG_PRODUCT_REALME_RMX1801*/
+
 struct input_dev {
 	const char *name;
 	const char *phys;
@@ -152,6 +162,10 @@ struct input_dev {
 
 	unsigned int repeat_key;
 	struct timer_list timer;
+	#ifdef CONFIG_PRODUCT_REALME_RMX1801
+	//Tong.Han@Bsp.Group.Tp,2017/2/27,Modify for shortcut function.
+	struct keyup_data keyup_data;
+	#endif/*CONFIG_PRODUCT_REALME_RMX1801*/
 
 	int rep[REP_CNT];
 
