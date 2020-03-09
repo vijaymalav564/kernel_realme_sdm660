@@ -626,8 +626,15 @@
 		clock-names = "core_clk", "core_a_clk";
 
 		qcom,cti-gpio-trigout = <4>;
+		//#ifdef CONFIG_PRODUCT_REALME_RMX1801
+		/*xiang.fei@PSW.MM.AudioDriver.Machine, 2017/01/26,
+		 *Delete for audio config.
+		 */
+		/*
 		pinctrl-names = "cti-trigout-pctrl";
 		pinctrl-0 = <&trigout_a>;
+		*/
+		//#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 	};
 
 	cti3: cti@6013000 {

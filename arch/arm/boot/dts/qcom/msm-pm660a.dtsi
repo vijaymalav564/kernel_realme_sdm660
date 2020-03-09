@@ -10,10 +10,19 @@
  * GNU General Public License for more details.
  */
 
+//#ifndef CONFIG_PRODUCT_REALME_RMX1801
 /* Disable WLED */
+//&pm660l_wled {
+//	status = "disabled";
+//};
+//#else
+//Shengjun.Gou@PSW.MM.Display.LCD.Stability, 2018/05/24,
+// change for enable wled
+/* Enable WLED */
 &pm660l_wled {
-	status = "disabled";
+	status = "ok";
 };
+//#endif
 
 /* disable LCDB */
 &pm660l_lcdb {
@@ -21,9 +30,9 @@
 };
 
 &pm660a_oledb {
-	status = "okay";
+	status = "disabled";
 };
 
 &pm660a_labibb {
-	status = "okay";
+	status = "disabled";
 };

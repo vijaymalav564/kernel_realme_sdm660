@@ -165,7 +165,11 @@
 				<61 512 240000 800000>;
 
 		qcom,dwc-usb3-msm-tx-fifo-size = <21288>;
-		extcon = <&pm660_pdphy>;
+//#ifdef CONFIG_PRODUCT_REALME_RMX1801 /* Jianchao.Shi@BSP.CHG.Basic, 2017/01/18, sjc Modify for charging */
+		//extcon = <&pm660_pdphy>;
+		extcon = <&pm660_charger>;
+		vbus_dwc3-supply = <&smb2_vbus>;
+//#endif
 		qcom,pm-qos-latency = <41>; /* CPU-CLUSTER-WFI-LVL latency +1 */
 
 		clocks = <&clock_gcc GCC_USB30_MASTER_CLK>,
@@ -192,7 +196,11 @@
 			reg = <0x0a800000 0xc8d0>;
 			interrupt-parent = <&intc>;
 			interrupts = <0 131 0>;
-			usb-phy = <&qusb_phy0>, <&ssphy>;
+//#ifdef CONFIG_PRODUCT_REALME_RMX1801 /* Jianchao.Shi@BSP.CHG.Basic, 2017/02/20, sjc Modify from Qcom patch */
+			//usb-phy = <&qusb_phy0>, <&ssphy>;
+			usb-phy = <&qusb_phy0>, <&usb_nop_phy>;
+			maximum-speed = "high-speed";
+//#endif
 			tx-fifo-resize;
 			snps,usb3-u1u2-disable;
 			snps,nominal-elastic-buffer;
@@ -281,16 +289,29 @@
 		qcom,vdd-voltage-level = <0 925000 925000>;
 		qcom,tune2-efuse-bit-pos = <25>;
 		qcom,tune2-efuse-num-bits = <4>;
-		qcom,qusb-phy-init-seq = <0xf8 0x80
-					0xb3 0x84
-					0x83 0x88
-					0xc0 0x8c
+//#ifndef CONFIG_PRODUCT_REALME_RMX1801 /* Jianchao.Shi@BSP.CHG.Basic, 2017/02/10, sjc Modify for OTG */
+		//qcom,qusb-phy-init-seq = <0xf8 0x80
+		//			0xb3 0x84
+		//			0x83 0x88
+		//			0xc0 0x8c
+		//			0x30 0x08
+		//			0x79 0x0c
+		//			0x21 0x10
+		//			0x14 0x9c
+		//			0x9f 0x1c
+		//			0x00 0x18>;
+//#else
+		qcom,qusb-phy-init-seq = <0x78 0x80
+					0x70 0x84
+					0x81 0x88
+					0xc7 0x8c
 					0x30 0x08
 					0x79 0x0c
 					0x21 0x10
 					0x14 0x9c
 					0x9f 0x1c
 					0x00 0x18>;
+//#endif
 		phy_type= "utmi";
 		qcom,phy-clk-scheme = "cml";
 		qcom,major-rev = <1>;
@@ -305,8 +326,17 @@
 		reset-names = "phy_reset";
 	};
 
+//#ifdef CONFIG_PRODUCT_REALME_RMX1801 /* Jianchao.Shi@BSP.CHG.Basic, 2017/02/20, sjc Add from Qcom patch */
+	usb_nop_phy: usb_nop_phy {
+		compatible = "usb-nop-xceiv";
+	};
+//#endif
+
 	ssphy: ssphy@c010000 {
 		compatible = "qcom,usb-ssphy-qmp-v2";
+//#ifdef CONFIG_PRODUCT_REALME_RMX1801 /* Jianchao.Shi@BSP.CHG.Basic, 2017/02/20, sjc Add from Qcom patch */
+		status = "disabled";
+//#endif
 		reg = <0xc010000 0xe18>,
 			<0x01fcb244 0x4>,
 			<0x01fcb248 0x4>;

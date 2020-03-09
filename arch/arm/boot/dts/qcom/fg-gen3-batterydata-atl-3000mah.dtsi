@@ -1,0 +1,72 @@
+
+qcom,oppo_atl_3500mah {
+	qcom, = <24>;
+	/* #3564924_OPPO_BD198tws_3500mAh_averaged_MasterSlave_Jul30th2018*/
+	qcom,max-voltage-uv = <4370000>;
+	qcom,fastchg-current-ma = <2000>;
+	qcom,fg-cc-cv-threshold-mv = <4360>;
+	qcom,nom-batt-capacity-mah = <3500>;
+	qcom,batt-id-kohm = <105>;
+	qcom,battery-beta = <3380>;
+	qcom,battery-type = "oppo_atl_3500mah_averaged_masterslave_jul30th2018";
+	qcom,checksum = <0xE409>;
+	qcom,gui-version = "PM660GUI - 0.0.0.45";
+	qcom,fg-profile-data = [
+		 32 21 04 04
+		 78 0B 77 05
+		 FF 1C C9 FA
+		 C1 05 B0 02
+		 35 17 F3 23
+		 90 44 09 5A
+		 96 00 00 00
+		 12 00 00 00
+		 00 00 1C C5
+		 0F C5 3B C2
+		 19 00 08 00
+		 D6 D3 AF E4
+		 E1 06 D9 F2
+		 30 02 8E 13
+		 36 07 E6 23
+		 25 06 09 20
+		 27 00 14 00
+		 2A 20 1B 05
+		 D5 0A E9 05
+		 CF 1C AF 02
+		 A6 0C 86 0B
+		 82 18 4C 23
+		 F2 44 EE 53
+		 73 00 00 00
+		 10 00 00 00
+		 00 00 F8 07
+		 BE C2 62 C2
+		 16 00 00 00
+		 5B 00 AF E4
+		 BB F4 C4 EB
+		 2F 07 07 02
+		 F8 06 4F 1A
+		 AA 33 CC FF
+		 07 10 00 00
+		 37 0D EB 45
+		 16 00 40 00
+		 88 01 0A FA
+		 FF 00 00 00
+		 00 00 00 00
+		 00 00 00 00
+		 00 00 00 00
+		 00 00 00 00
+		 00 00 00 00
+		 00 00 00 00
+		 00 00 00 00
+		 00 00 00 00
+		 00 00 00 00
+		 00 00 00 00
+		 00 00 00 00
+		 00 00 00 00
+		 00 00 00 00
+		 00 00 00 00
+		 00 00 00 00
+		 00 00 00 00
+		 00 00 00 00
+		 00 00 00 00
+	];
+};
