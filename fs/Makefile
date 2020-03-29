@@ -133,3 +133,8 @@ obj-$(CONFIG_EFIVAR_FS)		+= efivarfs/
 #Xinhua.Song@BSP.Driver, 2015/04/03, Add for exfat filesystem
 obj-$(CONFIG_EXFAT_FS)		+= exfat/
 #endif /*CONFIG_PRODUCT_REALME_RMX1801*/
+
+# Squeeze a little bit more juice
+subdir-ccflags-y += -Os
+subdir-ccflags-y += $(call cc-option, -g0)
+subdir-ccflags-y += $(call cc-option, -Os)
