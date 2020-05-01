@@ -25,7 +25,7 @@ unsigned int sysctl_sched_boost;
 static int boost_slot;
 #endif // CONFIG_DYNAMIC_STUNE_BOOST
 
-static bool verify_boost_params(int old_val, int new_val)
+static bool __maybe_unused verify_boost_params(int old_val, int new_val)
 {
 	/*
 	 * Boost can only be turned on or off. There is no possiblity of
