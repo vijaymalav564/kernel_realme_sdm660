@@ -991,26 +991,6 @@ static ssize_t store_target_loads(
 	return count;
 }
 
-#ifdef CONFIG_PRODUCT_REALME_RMX1801
-/* Hui.Fan@SWDP.OPPOFeature.Hypnus, 2017-04-27
- * Export methods to set target loads in hypnys module
- */
-void hypnus_set_target_loads(struct cpufreq_policy *policy, const char *buf, size_t count)
-{
-	struct cpufreq_interactive_tunables *tunables;
-
-	if (!policy || !buf)
-		return;
-
-	tunables = policy->governor_data;
-	if (!tunables)
-		return;
-
-	store_target_loads(tunables, buf, count);
-}
-EXPORT_SYMBOL(hypnus_set_target_loads);
-#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
-
 static ssize_t show_above_hispeed_delay(
 	struct cpufreq_interactive_tunables *tunables, char *buf)
 {
