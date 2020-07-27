@@ -436,9 +436,8 @@ static int msm_ispif_reset_hw(struct ispif_device *ispif)
 	int rc = 0;
 	long timeout = 0;
 	struct clk *reset_clk1[ARRAY_SIZE(ispif_8626_reset_clk_info)];
-	uint32_t ispifIrqStatus;
-
 	ispif->clk_idx = 0;
+
 	/* Turn ON VFE regulators before enabling the vfe clocks */
 	rc = msm_ispif_set_regulators(ispif->vfe_vdd, ispif->vfe_vdd_count, 1);
 	if (rc < 0)
@@ -476,18 +475,9 @@ static int msm_ispif_reset_hw(struct ispif_device *ispif)
 	CDBG("%s: VFE0 done\n", __func__);
 
 	if (timeout <= 0) {
-		ispifIrqStatus = msm_camera_io_r(ispif->base +
-			ISPIF_VFE_m_IRQ_STATUS_0(VFE0));
-		if (ispifIrqStatus & RESET_DONE_IRQ) {
-			if (atomic_dec_and_test(&ispif->reset_trig[VFE0]))
-				pr_err("%s timeout error but irq status reset irq 0x%x",
-				__func__, ispifIrqStatus);
-			} else {
-			rc = -ETIMEDOUT;
-			pr_err("%s: VFE0 reset wait timeout 0x%x\n", __func__,
-				ispifIrqStatus);
-			goto clk_disable;
-		}
+		rc = -ETIMEDOUT;
+		pr_err("%s: VFE0 reset wait timeout\n", __func__);
+		goto clk_disable;
 	}
 
 	if (ispif->hw_num_isps > 1) {
@@ -499,16 +489,8 @@ static int msm_ispif_reset_hw(struct ispif_device *ispif)
 				msecs_to_jiffies(500));
 		CDBG("%s: VFE1 done\n", __func__);
 		if (timeout <= 0) {
-			ispifIrqStatus = msm_camera_io_r(ispif->base +
-				ISPIF_VFE_m_IRQ_STATUS_0(VFE1));
-			if (ispifIrqStatus & RESET_DONE_IRQ) {
-				if (atomic_dec_and_test(&ispif->reset_trig[VFE1]))
-					pr_err("%s timeout error but irq status reset irq 0x%x",
-					__func__, ispifIrqStatus);
-			} else {
-				pr_err("%s: VFE1 reset wait timeout 0x%x\n", __func__, ispifIrqStatus);
-				rc = -ETIMEDOUT;
-			}
+			pr_err("%s: VFE1 reset wait timeout\n", __func__);
+			rc = -ETIMEDOUT;
 		}
 	}
 
