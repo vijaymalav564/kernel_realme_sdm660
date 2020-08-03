@@ -385,7 +385,11 @@
 					compatible = "android,vendor";
 					dev = "/dev/block/platform/soc/c0c4000.sdhci/by-name/vendor";
 					type = "ext4";
-					mnt_flags = "ro,barrier=1,discard";
+/*#if defined(CONFIG_PRODUCT_REALME_RMX1801) && defined(CONFIG_EXT4_ASYNC_DISCARD_SUPPORT)*/
+/*yh@PSW.BSP.Storage.EXT4, 2018-11-26 add for ext4 async discard suppot*/
+					mnt_flags = "ro,barrier=1,async_discard";
+/*#else*/
+					/*mnt_flags = "ro,barrier=1,discard";*/
 //#ifndef CONFIG_PRODUCT_REALME_RMX1801 //Fanhong.Kong@PSW.BSP.CHG,add 2017/10/25 for close AB 
 //					fsmgr_flags = "wait,slotselect,verify";
 //#else/*CONFIG_PRODUCT_REALME_RMX1801*/
