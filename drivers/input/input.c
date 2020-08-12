@@ -360,7 +360,7 @@ static int input_get_disposition(struct input_dev *dev,
 			#else
 			if (!!test_bit(code, dev->key) != !!value) {
 				//if (value == 0 && (code == KEY_MENU || code == KEY_BACK || code == KEY_HOMEPAGE) && (&dev->keyup_data.keyup_timer) && flag_lcd_off == 0) {
-				if (value == 0 && (code == KEY_MENU || code == KEY_BACK || code == KEY_HOMEPAGE) && (&dev->keyup_data.keyup_timer)) {
+				if (value == 0 && (code == KEY_MENU || code == KEY_BACK || code == KEY_HOMEPAGE) && (&dev->keyup_data.keyup_timer != NULL)) {
 					if (code == KEY_MENU)
 						set_bit(KEYUP_MENU,&(dev->keyup_data.keyup_flag));
 					else if (code == KEY_BACK)
