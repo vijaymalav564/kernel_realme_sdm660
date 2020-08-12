@@ -677,6 +677,12 @@ static struct attribute_group reset_attr_group = {
 
 static int msm_restart_probe(struct platform_device *pdev)
 {
+#ifdef CONFIG_PRODUCT_REALME_RMX1801
+/*ziqing.guo@BSP.Kernel.Stability, 2017/05/22, Modify for disable sdi only for the secure enabled device stage 2*/
+	#define OEM_SEC_ENABLE_ANTIROLLBACK_REG 0x78019c //this address just for sdm660
+	void __iomem *oem_config_base = NULL;
+	uint32_t secure_oem_config = 0;
+#endif /* CONFIG_PRODUCT_REALME_RMX1801 */
 	struct device *dev = &pdev->dev;
 	struct resource *mem;
 	struct device_node *np;
@@ -686,9 +692,8 @@ static int msm_restart_probe(struct platform_device *pdev)
 
 	#ifdef CONFIG_PRODUCT_REALME_RMX1801
 	/*ziqing.guo@BSP.Kernel.Stability, 2017/05/22, Modify for disable sdi only for the secure enabled device stage 2*/
-	#define OEM_SEC_ENABLE_ANTIROLLBACK_REG 0x78019c //this address just for sdm660
-	void __iomem *oem_config_base = ioremap(OEM_SEC_ENABLE_ANTIROLLBACK_REG, 4);
-	uint32_t secure_oem_config = __raw_readl(oem_config_base);
+	oem_config_base = ioremap(OEM_SEC_ENABLE_ANTIROLLBACK_REG, 4);
+	secure_oem_config = __raw_readl(oem_config_base);
 	iounmap(oem_config_base);
 	if (secure_oem_config) {
 		pr_debug("this is a secure stage 2 device\n");
