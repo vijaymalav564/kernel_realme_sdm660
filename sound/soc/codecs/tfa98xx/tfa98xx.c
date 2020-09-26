@@ -55,7 +55,6 @@
 #include "tfa98xx_parameters.h"
 
 #define TFA98XX_VERSION        "2.10.1-a"
-#define CONFIG_DEBUG_FS 1
 
 #ifdef CONFIG_PRODUCT_REALME_RMX1801
 /*xiang.fei@PSW.MM.AudioDriver.FTM, 2017/02/15, Add for ringing*/
