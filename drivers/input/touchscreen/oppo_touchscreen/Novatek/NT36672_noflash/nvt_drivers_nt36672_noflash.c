@@ -2454,7 +2454,7 @@ static void nvt_black_screen_test(void *chip_data, char *message)
         int fd = -1;
         mm_segment_t old_fs;
         char buf[128] = {0};
-        uint8_t data_buf[64];
+        uint8_t data_buf[128];
         struct timespec now_time;
         struct rtc_time rtc_now_time;
         int32_t *lpwg_rawdata_P = NULL, *lpwg_rawdata_N = NULL;
