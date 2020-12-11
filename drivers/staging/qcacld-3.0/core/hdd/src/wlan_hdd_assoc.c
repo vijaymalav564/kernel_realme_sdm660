@@ -5655,8 +5655,8 @@ int hdd_set_genie_to_csr(struct hdd_adapter *adapter,
 	struct csr_roam_profile *roam_profile;
 	uint8_t *security_ie;
 	uint32_t status = 0;
-	eCsrEncryptionType rsn_encrypt_type;
-	eCsrEncryptionType mc_rsn_encrypt_type;
+	eCsrEncryptionType rsn_encrypt_type = 0;
+	eCsrEncryptionType mc_rsn_encrypt_type = 0;
 	struct hdd_context *hdd_ctx;
 	uint8_t mfp_required = 0;
 	uint8_t mfp_capable = 0;
