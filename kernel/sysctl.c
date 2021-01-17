@@ -514,7 +514,7 @@ static struct ctl_table kern_table[] = {
 		.data		= &sched_lib_mask_force,
 		.maxlen		= sizeof(unsigned int),
 		.mode		= 0644,
-		.proc_handler	= proc_douintvec_minmax,
+		.proc_handler	= proc_dointvec_minmax,
 		.extra1		= &zero,
 		.extra2		= &two_hundred_fifty_five,
 	},
