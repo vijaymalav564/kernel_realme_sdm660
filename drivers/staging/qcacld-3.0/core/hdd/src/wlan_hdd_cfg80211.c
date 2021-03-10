@@ -24559,8 +24559,6 @@ void hdd_send_update_owe_info_event(struct hdd_adapter *adapter,
 	owe_info.ie = owe_ie;
 	owe_info.ie_len = owe_ie_len;
 
-	cfg80211_update_owe_info_event(dev, &owe_info, GFP_KERNEL);
-
 	hdd_exit();
 }
 #endif
