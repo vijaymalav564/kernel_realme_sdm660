@@ -340,6 +340,7 @@ include scripts/Kbuild.include
 AS		= $(CROSS_COMPILE)as
 LD		= $(CROSS_COMPILE)ld
 LDGOLD		= $(CROSS_COMPILE)ld.gold
+LDLLD		= ld.lld
 CC		= $(CROSS_COMPILE)gcc
 CPP		= $(CC) -E
 AR		= $(CROSS_COMPILE)ar
@@ -628,6 +629,10 @@ CLANG_FLAGS	+= -Werror=unknown-warning-option
 KBUILD_CFLAGS	+= $(CLANG_FLAGS)
 KBUILD_AFLAGS	+= $(CLANG_FLAGS)
 ifeq ($(ld-name),lld)
+CLANG_FLAGS	+= -fuse-ld=$(shell which $(LD))
+endif
+KBUILD_CPPFLAGS	+= -Qunused-arguments
+ifeq ($(ld-name),lld)
 KBUILD_CFLAGS += -fuse-ld=lld
 endif
 KBUILD_CPPFLAGS += -Qunused-arguments
@@ -635,11 +640,16 @@ endif
 
 # Make toolchain changes before including arch/$(SRCARCH)/Makefile to ensure
 # ar/cc/ld-* macros return correct values.
-ifdef CONFIG_LTO_CLANG
-ifneq ($(ld-name),lld)
-# use GNU gold with LLVMgold for LTO linking, and LD for vmlinux_link
+ifdef CONFIG_LD_GOLD
 LDFINAL_vmlinux := $(LD)
 LD		:= $(LDGOLD)
+endif
+ifdef CONFIG_LD_LLD
+LD		:= $(LDLLD)
+endif
+ifdef CONFIG_LTO_CLANG
+# use GNU gold with LLVMgold or LLD for LTO linking, and LD for vmlinux_link
+ifeq ($(ld-name),gold)
 LDFLAGS		+= -plugin LLVMgold.so
 endif
 # use llvm-ar for building symbol tables from IR files, and llvm-dis instead
@@ -787,7 +797,7 @@ KBUILD_CFLAGS += $(call cc-disable-warning, unused-but-set-variable)
 endif
 
 ifeq ($(ld-name),lld)
-LDFLAGS += -O2
+LDFLAGS += -O3
 endif
 
 KBUILD_CFLAGS += $(call cc-disable-warning, unused-const-variable)
@@ -1172,7 +1182,7 @@ ifdef CONFIG_LTO_CLANG
   endif
   ifneq ($(ld-name),lld)
     ifneq ($(call gold-ifversion, -ge, 112000000, y), y)
-         @echo Cannot use CONFIG_LTO_CLANG: requires GNU gold 1.12 or later >&2 && exit 1
+    	@echo Cannot use CONFIG_LTO_CLANG: requires LLD or GNU gold 1.12 or later >&2 && exit 1
     endif
   endif
 endif
