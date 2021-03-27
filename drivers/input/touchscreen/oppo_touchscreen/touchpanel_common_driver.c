@@ -4472,7 +4472,7 @@ int tp_register_irq_func(struct touchpanel_data *ts)
         }
         ret = request_threaded_irq(ts->irq, NULL,
                 tp_irq_thread_fn,
-                ts->irq_flags | IRQF_ONESHOT,
+                ts->irq_flags | IRQF_ONESHOT | IRQF_PERF_CRITICAL,
                 TPD_DEVICE, ts);
         if (ret < 0) {
             TPD_INFO("%s request_threaded_irq ret is %d\n", __func__, ret);
