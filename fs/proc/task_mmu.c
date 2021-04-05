@@ -575,10 +575,8 @@ show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
 	}
 
 done:
-	if (name) {
-		seq_putc(m, ' ');
+	if (name)
 		seq_puts(m, name);
-	}
 	seq_putc(m, '\n');
 }
 
@@ -923,14 +921,13 @@ static int show_smap(struct seq_file *m, void *v, int is_pid)
 	} else if (last_vma) {
 		show_vma_header_prefix(
 			m, mss->first_vma_start, vma->vm_end, 0, 0, 0, 0);
-		seq_pad(m, ' ');
 		seq_puts(m, "[rollup]\n");
 	} else {
 		ret = SEQ_SKIP;
 	}
 
 	if (!rollup_mode && vma_get_anon_name(vma)) {
-		seq_puts(m, "Name:          ");
+		seq_puts(m, "Name:           ");
 		seq_print_vma_name(m, vma);
 	}
 
