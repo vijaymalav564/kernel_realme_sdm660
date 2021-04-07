@@ -133,7 +133,7 @@ static void seq_print_vma_name(struct seq_file *m, struct vm_area_struct *vma)
 	page_offset = (unsigned long)name - page_start_vaddr;
 	num_pages = DIV_ROUND_UP(page_offset + max_len, PAGE_SIZE);
 
-	seq_write(m, " [anon:", 7);
+	seq_write(m, "[anon:", 6);
 
 	for (i = 0; i < num_pages; i++) {
 		int len;
@@ -349,7 +349,7 @@ static int is_stack(struct proc_maps_private *priv,
 			__out[1] = hex_asc[(__val >> 28) & 0xf];	\
 			__out[0] = hex_asc[(__val >> 32) & 0xf];	\
 			break;						\
-		case 8:							\
+		default:						\
 			__out[7] = hex_asc[(__val >>  0) & 0xf];	\
 			__out[6] = hex_asc[(__val >>  4) & 0xf];	\
 			__out[5] = hex_asc[(__val >>  8) & 0xf];	\
@@ -358,81 +358,26 @@ static int is_stack(struct proc_maps_private *priv,
 			__out[2] = hex_asc[(__val >> 20) & 0xf];	\
 			__out[1] = hex_asc[(__val >> 24) & 0xf];	\
 			__out[0] = hex_asc[(__val >> 28) & 0xf];	\
-			break;						\
-		case 7:							\
-			__out[6] = hex_asc[(__val >>  0) & 0xf];	\
-			__out[5] = hex_asc[(__val >>  4) & 0xf];	\
-			__out[4] = hex_asc[(__val >>  8) & 0xf];	\
-			__out[3] = hex_asc[(__val >> 12) & 0xf];	\
-			__out[2] = hex_asc[(__val >> 16) & 0xf];	\
-			__out[1] = hex_asc[(__val >> 20) & 0xf];	\
-			__out[0] = hex_asc[(__val >> 24) & 0xf];	\
-			break;						\
-		case 6:							\
-			__out[5] = hex_asc[(__val >>  0) & 0xf];	\
-			__out[4] = hex_asc[(__val >>  4) & 0xf];	\
-			__out[3] = hex_asc[(__val >>  8) & 0xf];	\
-			__out[2] = hex_asc[(__val >> 12) & 0xf];	\
-			__out[1] = hex_asc[(__val >> 16) & 0xf];	\
-			__out[0] = hex_asc[(__val >> 20) & 0xf];	\
-			break;						\
-		case 5:							\
-			__out[4] = hex_asc[(__val >>  0) & 0xf];	\
-			__out[3] = hex_asc[(__val >>  4) & 0xf];	\
-			__out[2] = hex_asc[(__val >>  8) & 0xf];	\
-			__out[1] = hex_asc[(__val >> 12) & 0xf];	\
-			__out[0] = hex_asc[(__val >> 16) & 0xf];	\
-			break;						\
-		case 4:							\
-			__out[3] = hex_asc[(__val >>  0) & 0xf];	\
-			__out[2] = hex_asc[(__val >>  4) & 0xf];	\
-			__out[1] = hex_asc[(__val >>  8) & 0xf];	\
-			__out[0] = hex_asc[(__val >> 12) & 0xf];	\
-			break;						\
-		case 3:							\
-			__out[2] = hex_asc[(__val >>  0) & 0xf];	\
-			__out[1] = hex_asc[(__val >>  4) & 0xf];	\
-			__out[0] = hex_asc[(__val >>  8) & 0xf];	\
-			break;						\
-		case 2:							\
-			__out[1] = hex_asc[(__val >>  0) & 0xf];	\
-			__out[0] = hex_asc[(__val >>  4) & 0xf];	\
-			break;						\
-		case 1:							\
-			__out[0] = hex_asc[(__val >>  0) & 0xf];	\
+			__len = 8;					\
 			break;						\
 		}							\
 	} else {							\
-		__len = 1;						\
-		__out[0] = '0';						\
+		*(u64 *)__out = U64_C(0x3030303030303030);		\
+		__len = 8;						\
 	}								\
 									\
 	__len;								\
 })
 
-#define print_vma_hex2(out, val, clz_fn) \
+#define print_vma_hex2(out, val) \
 ({									\
 	const typeof(val) __val = val;					\
 	char *const __out = out;					\
-	size_t __len;							\
 									\
-	if (__val) {							\
-		__len = (sizeof(__val) * 8 - clz_fn(__val) + 3) / 4;	\
-		switch (__len) {					\
-		case 2:							\
-			__out[1] = hex_asc[(__val >>  0) & 0xf];	\
-			__out[0] = hex_asc[(__val >>  4) & 0xf];	\
-			break;						\
-		case 1:							\
-			__out[0] = hex_asc[(__val >>  0) & 0xf];	\
-			break;						\
-		}							\
-	} else {							\
-		__len = 1;						\
-		__out[0] = '0';						\
-	}								\
+	__out[1] = hex_asc[(__val >>  0) & 0xf];			\
+	__out[0] = hex_asc[(__val >>  4) & 0xf];			\
 									\
-	__len;								\
+	2;								\
 })
 
 static int show_vma_header_prefix(struct seq_file *m, unsigned long start,
@@ -444,7 +389,7 @@ static int show_vma_header_prefix(struct seq_file *m, unsigned long start,
 	char *out;
 
 	/* Set the overflow status to get more memory if there's no space */
-	if (seq_get_buf(m, &out) < 64) {
+	if (seq_get_buf(m, &out) < 65) {
 		seq_commit(m, -1);
 		return -ENOMEM;
 	}
@@ -469,15 +414,19 @@ static int show_vma_header_prefix(struct seq_file *m, unsigned long start,
 
 	out[len++] = ' ';
 
-	len += print_vma_hex2(out + len, MAJOR(dev), __builtin_clz);
+	len += print_vma_hex2(out + len, MAJOR(dev));
 
 	out[len++] = ':';
 
-	len += print_vma_hex2(out + len, MINOR(dev), __builtin_clz);
+	len += print_vma_hex2(out + len, MINOR(dev));
 
 	out[len++] = ' ';
 
-	m->count += num_to_str(&out[len], 20, ino) + len;
+	len += num_to_str(&out[len], 20, ino);
+
+	out[len++] = ' ';
+
+	m->count += len;
 	return 0;
 }
 
@@ -519,13 +468,12 @@ show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
 		 * This won't escape newline characters from the path. If a
 		 * program uses newlines in its paths then it can kick rocks.
 		 */
-		if (size > 2) {
-			const int inlen = size - 2;
+		if (size > 1) {
+			const int inlen = size - 1;
 			int outlen = inlen;
 			char *p;
 
-			*buf = ' ';
-			p = d_path_outlen(&file->f_path, buf + 1, &outlen);
+			p = d_path_outlen(&file->f_path, buf, &outlen);
 			if (!IS_ERR(p)) {
 				size_t len;
 
@@ -533,9 +481,9 @@ show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
 					len = inlen - outlen - 1;
 				else
 					len = strlen(p);
-				memmove(buf + 1, p, len);
-				buf[len + 1] = '\n';
-				seq_commit(m, len + 2);
+				memmove(buf, p, len);
+				buf[len] = '\n';
+				seq_commit(m, len + 1);
 				return;
 			}
 		}
@@ -554,23 +502,23 @@ show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
 	name = arch_vma_name(vma);
 	if (!name) {
 		if (!mm) {
-			seq_write(m, " [vdso]\n", 8);
+			seq_write(m, "[vdso]\n", 7);
 			return;
 		}
 
 		if (vma->vm_start <= mm->brk &&
 		    vma->vm_end >= mm->start_brk) {
-			seq_write(m, " [heap]\n", 8);
+			seq_write(m, "[heap]\n", 7);
 			return;
 		}
 
 		if (is_stack(priv, vma)) {
-			seq_write(m, " [stack]\n", 9);
+			seq_write(m, "[stack]\n", 8);
 			return;
 		}
 		if (vma_get_anon_name(vma)) {
 			seq_print_vma_name(m, vma);
-			return;			
+			return;
 		}
 	}
 
