@@ -28,7 +28,6 @@ obj-$(CONFIG_INPUT_MISC)	+= misc/
 obj-$(CONFIG_INPUT_APMPOWER)	+= apm-power.o
 obj-$(CONFIG_INPUT_KEYRESET)	+= keyreset.o
 obj-$(CONFIG_INPUT_KEYCOMBO)	+= keycombo.o
-obj-y   += sensors/bmi160/
 
 #ifdef CONFIG_PRODUCT_REALME_RMX1801
 #Haitao.Zhou@Prd.BaseDrv, 2017/02/16 Add for fingerprint compatibility
