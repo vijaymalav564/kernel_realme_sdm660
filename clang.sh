@@ -7,12 +7,17 @@
 green='\033[0;32m'
 echo -e "$green"
 
+BUILD_START=$(date +"%s")
+
 # Main Environment
 KERNEL_DIR=$PWD
+DATE=$(date +"%d-%m-%Y-%I-%M")
+CORES=$(grep -c ^processor /proc/cpuinfo)
+THREAD="-j$CORES"
 KERN_IMG=$KERNEL_DIR/out/arch/arm64/boot/Image.gz-dtb
 ZIP_DIR=$KERNEL_DIR/AnyKernel3
 CROSS_COMPILE+="ccache clang"
-CACHE=true
+CCACHE=true
 
 # Modules environtment
 OUTDIR="$PWD/out/"
@@ -38,10 +43,9 @@ while true; do
 	if [ "$choice" == "1" ]; then
 	    echo -e "\n(i) Cloning toolcahins if folder not exist..."
 	    git clone https://github.com/kdrag0n/proton-clang --depth=1
-	    echo -e ""start kernel building"" 
 
 echo
-echo "Issue Build Commands"
+echo "Issue Kernel Build Commands"
 echo
 
 mkdir -p out
@@ -57,16 +61,16 @@ export KBUILD_BUILD_HOST=ᧁᥴꪶꪮꪊᦔ
 echo
 echo "Set DEFCONFIG"
 echo 
-make CC="ccache clang" AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip O=out RMX1801_defconfig
+make CC='ccache clang -Qunused-arguments -fcolor-diagnostics' AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip O=out RMX1801_defconfig
 
 echo
-echo "Build The Good Stuff"
+echo "Starting Building Kernel"
 echo 
 
-make CC=clang AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip O=out -j8
-		
+echo -e "" 
+make CC='ccache clang -Qunused-arguments -fcolor-diagnostics' AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip O=out $THREAD
 
-		BUILD_START=$(date +"%s")
+echo -e ""
 		DATE=`date`
 
 		echo -e "\n#######################################################################"
@@ -100,7 +104,7 @@ make CC=clang AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump ST
 
 		echo -e "#######################################################################"
 
-		echo -e "(i) Total time elapsed: $(($DIFF / 60)) minute(s) and $(($DIFF % 60)) seconds."
+		echo -e "Build completed in $(($DIFF / 60)) minute(s) and $(($DIFF % 60)) seconds."
 
 		echo -e "#######################################################################"
 	fi
