@@ -61,14 +61,14 @@ export KBUILD_BUILD_HOST=ᧁᥴꪶꪮꪊᦔ
 echo
 echo "Set DEFCONFIG"
 echo 
-make CC='ccache clang -Qunused-arguments -fcolor-diagnostics' AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip O=out RMX1801_defconfig
+make CC='ccache clang -Qunused-arguments -fcolor-diagnostics' LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip O=out RMX1801_defconfig
 
 echo
 echo "Starting Building Kernel"
 echo 
 
 echo -e "" 
-make CC='ccache clang -Qunused-arguments -fcolor-diagnostics' AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip O=out $THREAD
+make CC='ccache clang -Qunused-arguments -fcolor-diagnostics' LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip O=out $THREAD
 
 echo -e ""
 		DATE=`date`
