@@ -47,7 +47,9 @@
 #include "pld_common.h"
 #include "qdf_crypto.h"
 #include <wlan_logging_sock_svc.h>
+#include <cds_ieee80211_common.h>
 
+#define RSN_AUTH_KEY_MGMT_SAE           RSN_SEL(AKM_SUITE_TYPE_SAE)
 #define MAX_PWR_FCC_CHAN_12 8
 #define MAX_PWR_FCC_CHAN_13 2
 
@@ -11675,6 +11677,54 @@ static QDF_STATUS csr_send_reset_ap_caps_changed(tpAniSirGlobal pMac,
 	return status;
 }
 
+static bool csr_is_sae_akm_present(tDot11fIERSN * const rsn_ie)
+{
+	uint16_t i;
+
+	if (rsn_ie->akm_suite_cnt > 6) {
+		sme_debug("Invalid akm_suite_cnt in Rx RSN IE");
+		return false;
+	}
+
+	for (i = 0; i < rsn_ie->akm_suite_cnt; i++) {
+		if (LE_READ_4(rsn_ie->akm_suite[i]) == RSN_AUTH_KEY_MGMT_SAE) {
+			sme_debug("SAE AKM present");
+			return true;
+		}
+	}
+	return false;
+}
+
+static bool csr_is_sae_peer_allowed(tpAniSirGlobal mac,
+				    tSirSmeAssocInd *assoc_ind,
+				    tCsrRoamSession *session,
+				    tSirMacAddr peer_mac_addr,
+				    tDot11fIERSN *rsn_ie,
+				    tSirMacStatusCodes *mac_status_code)
+{
+	bool is_allowed = false;
+
+	/* Allow the peer if it's SAE authenticated */
+	if (assoc_ind->is_sae_authenticated)
+		return true;
+
+	/* Allow the peer with valid PMKID */
+	if (!rsn_ie->pmkid_count) {
+		*mac_status_code = eSIR_MAC_AUTH_ALGO_NOT_SUPPORTED_STATUS;
+		sme_debug("No PMKID present in RSNIE; Tried to use SAE AKM after non-SAE authentication");
+	} else if (csr_is_pmkid_found_for_peer(mac, session, peer_mac_addr,
+					       &rsn_ie->pmkid[0][0],
+					       rsn_ie->pmkid_count)) {
+		sme_debug("Valid PMKID found for SAE peer");
+		is_allowed = true;
+	} else {
+		*mac_status_code = eSIR_MAC_INVALID_PMKID;
+		sme_debug("No valid PMKID found for SAE peer");
+	}
+
+	return is_allowed;
+}
+
 static void
 csr_roam_chk_lnk_assoc_ind(tpAniSirGlobal mac_ctx, tSirSmeRsp *msg_ptr)
 {
@@ -11684,6 +11734,7 @@ csr_roam_chk_lnk_assoc_ind(tpAniSirGlobal mac_ctx, tSirSmeRsp *msg_ptr)
 	tCsrRoamInfo *roam_info_ptr = NULL;
 	tSirSmeAssocInd *pAssocInd;
 	tCsrRoamInfo roam_info;
+	tSirMacStatusCodes mac_status_code = eSIR_MAC_SUCCESS_STATUS;
 
 	qdf_mem_set(&roam_info, sizeof(roam_info), 0);
 	sme_debug("Receive WNI_SME_ASSOC_IND from SME");
@@ -11756,13 +11807,35 @@ csr_roam_chk_lnk_assoc_ind(tpAniSirGlobal mac_ctx, tSirSmeRsp *msg_ptr)
 		status = csr_roam_call_callback(mac_ctx, sessionId,
 					roam_info_ptr, 0, eCSR_ROAM_INFRA_IND,
 					eCSR_ROAM_RESULT_INFRA_ASSOCIATION_IND);
-		if (!QDF_IS_STATUS_SUCCESS(status))
+		if (!QDF_IS_STATUS_SUCCESS(status)) {
 			/* Refused due to Mac filtering */
 			roam_info_ptr->statusCode = eSIR_SME_ASSOC_REFUSED;
+		} else if (pAssocInd->rsnIE.length) {
+			tDot11fIERSN rsn_ie = {0};
+
+			if (dot11f_unpack_ie_rsn(mac_ctx,
+						 pAssocInd->rsnIE.rsnIEdata + 2,
+						 pAssocInd->rsnIE.length - 2,
+						 &rsn_ie, false)
+			    != DOT11F_PARSE_SUCCESS ||
+			    (csr_is_sae_akm_present(&rsn_ie) &&
+			     !csr_is_sae_peer_allowed(mac_ctx, pAssocInd,
+						      session,
+						      pAssocInd->peerMacAddr,
+						      &rsn_ie,
+						      &mac_status_code))) {
+				status = QDF_STATUS_E_INVAL;
+				roam_info_ptr->statusCode =
+					eSIR_SME_ASSOC_REFUSED;
+				sme_debug("SAE peer not allowed: Status: %d",
+					  mac_status_code);
+			}
+		}
 	}
 
 	/* Send Association completion message to PE */
-	status = csr_send_assoc_cnf_msg(mac_ctx, pAssocInd, status);
+	status = csr_send_assoc_cnf_msg(mac_ctx, pAssocInd, status,
+					mac_status_code);
 	/*
 	 * send a message to CSR itself just to avoid the EAPOL frames going
 	 * OTA before association response
@@ -17102,8 +17175,10 @@ QDF_STATUS csr_send_mb_deauth_cnf_msg(tpAniSirGlobal pMac,
 	return status;
 }
 
-QDF_STATUS csr_send_assoc_cnf_msg(tpAniSirGlobal pMac, tpSirSmeAssocInd
-				pAssocInd, QDF_STATUS Halstatus)
+QDF_STATUS csr_send_assoc_cnf_msg(tpAniSirGlobal pMac,
+				  tpSirSmeAssocInd pAssocInd,
+				  QDF_STATUS Halstatus,
+				  tSirMacStatusCodes mac_status_code)
 {
 	QDF_STATUS status = QDF_STATUS_SUCCESS;
 	tSirSmeAssocCnf *pMsg;
@@ -17116,10 +17191,12 @@ QDF_STATUS csr_send_assoc_cnf_msg(tpAniSirGlobal pMac, tpSirSmeAssocInd
 			return QDF_STATUS_E_NOMEM;
 		pMsg->messageType = eWNI_SME_ASSOC_CNF;
 		pMsg->length = sizeof(tSirSmeAssocCnf);
-		if (QDF_IS_STATUS_SUCCESS(Halstatus))
+		if (QDF_IS_STATUS_SUCCESS(Halstatus)) {
 			pMsg->statusCode = eSIR_SME_SUCCESS;
-		else
+		} else {
 			pMsg->statusCode = eSIR_SME_ASSOC_REFUSED;
+			pMsg->mac_status_code = mac_status_code;
+		}
 		/* bssId */
 		qdf_mem_copy(pMsg->bssid.bytes, pAssocInd->bssId,
 			     QDF_MAC_ADDR_SIZE);
@@ -20175,7 +20252,7 @@ static void csr_add_rssi_reject_ap_list(tpAniSirGlobal mac_ctx,
 #define RSO_RESTART_BIT     (1<<ROAM_SCAN_OFFLOAD_RESTART)
 #define RSO_UPDATE_CFG_BIT  (1<<ROAM_SCAN_OFFLOAD_UPDATE_CFG)
 #define RSO_ABORT_SCAN_BIT  (1<<ROAM_SCAN_OFFLOAD_ABORT_SCAN)
-#define RSO_START_ALLOW_MASK   (RSO_STOP_BIT | RSO_UPDATE_CFG_BIT)
+#define RSO_START_ALLOW_MASK   (RSO_START_BIT |RSO_STOP_BIT | RSO_UPDATE_CFG_BIT)
 #define RSO_STOP_ALLOW_MASK    (RSO_UPDATE_CFG_BIT | RSO_RESTART_BIT | \
 		RSO_STOP_BIT | RSO_START_BIT | RSO_ABORT_SCAN_BIT)
 #define RSO_RESTART_ALLOW_MASK (RSO_UPDATE_CFG_BIT | RSO_START_BIT | \
@@ -22872,6 +22949,8 @@ static QDF_STATUS csr_process_roam_sync_callback(tpAniSirGlobal mac_ctx,
 	tSirSmeHTProfile *src_profile = NULL;
 	tCsrRoamHTProfile *dst_profile = NULL;
 #endif
+	tpCsrNeighborRoamControlInfo neigh_roam_info =
+				&mac_ctx->roam.neighborRoamInfo[session_id];
 
 	if (!session) {
 		sme_err("LFR3: Session not found");
@@ -22888,6 +22967,7 @@ static QDF_STATUS csr_process_roam_sync_callback(tpAniSirGlobal mac_ctx,
 		csr_roam_roaming_offload_timer_action(mac_ctx,
 				0, session_id, ROAMING_OFFLOAD_TIMER_STOP);
 		if (session->discon_in_progress ||
+		    neigh_roam_info->last_sent_cmd == ROAM_SCAN_OFFLOAD_STOP ||
 		    !CSR_IS_ROAM_JOINED(mac_ctx, session_id)) {
 			QDF_TRACE(QDF_MODULE_ID_SME, QDF_TRACE_LEVEL_DEBUG,
 				FL("LFR3: Session not in connected state or disconnect is in progress %d"),
@@ -23084,6 +23164,8 @@ static QDF_STATUS csr_process_roam_sync_callback(tpAniSirGlobal mac_ctx,
 					eCSR_ROAM_SUBSTATE_NONE,
 					session_id);
 		}
+		csr_neighbor_roam_state_transition(mac_ctx,
+				eCSR_NEIGHBOR_ROAM_STATE_INIT, session_id);
 	}
 	roam_info->nBeaconLength = 0;
 	roam_info->nAssocReqLength = roam_synch_data->reassoc_req_length -
