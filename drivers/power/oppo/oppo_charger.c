@@ -95,7 +95,7 @@ static struct oppo_chg_chip *g_charger_chip = NULL;
 
 #define OPPO_CHG_DEFAULT_CHARGING_CURRENT        512
 
-int enable_charger_log = 2;
+int enable_charger_log = 0;
 int charger_abnormal_log = 0;
 
 /* wenbin.liu@SW.Bsp.Driver, 2016/03/01  Add for log tag*/
