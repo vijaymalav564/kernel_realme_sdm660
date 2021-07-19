@@ -20,3 +20,8 @@ obj-$(CONFIG_MSM_VIDC_V4L2) := msm-vidc.o
 obj-$(CONFIG_MSM_VIDC_V4L2) += governors/
 
 obj-$(CONFIG_MSM_VIDC_VMEM) += vmem/
+
+ifeq ($(cc-name),clang)
+	KBUILD_CFLAGS  += $(DISABLE_LTO)
+	ccflags-y += $(call cc-option, -Os)
+endif
