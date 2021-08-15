@@ -42,7 +42,7 @@ while true; do
 
 	if [ "$choice" == "1" ]; then
 	    echo -e "\n(i) Cloning toolcahins if folder not exist..."
-	    git clone https://gitlab.com/Vijaymalav564/vortex-clang.git --depth=1
+	    git clone https://github.com/vijaymalav564/vortex-clang --depth=1
 
 echo
 echo "Issue Kernel Build Commands"
