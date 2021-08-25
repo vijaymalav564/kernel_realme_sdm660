@@ -1,0 +1,17 @@
+---
+clone: 
+  depth: 1
+kind: pipeline
+name: kernel pipeline
+ 
+steps:
+  - name: building kernel
+    image: archlinux:base-devel
+    commands:
+      - curl -fsSL "https://repo.archlinuxcn.org/x86_64/glibc-linux4-2.33-4-x86_64.pkg.tar.zst" | bsdtar -C / -xvf -
+      - pacman -Syu --needed --noconfirm wget base-devel xmlto inetutils bc cpio python-sphinx python-sphinx_rtd_theme graphviz imagemagick git python2 python zip
+      - "export token=$TOKEN"
+      - "curl https://raw.githubusercontent.com/vijaymalav564/myscripts/master/kernel.sh | bash"
+    environment: 
+      TOKEN: 
+        from_secret: token
