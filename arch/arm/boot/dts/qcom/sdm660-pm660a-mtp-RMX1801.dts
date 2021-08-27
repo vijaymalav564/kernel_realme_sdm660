@@ -16,6 +16,7 @@
 #include "sdm660.dtsi"
 #include "sdm660-mtp.dtsi"
 #include "msm-pm660a.dtsi"
+#include "RMX1801-sdm660-ramoops.dtsi"
 //#ifndef CONFIG_PRODUCT_REALME_RMX1801
 /*xiang.fei@PSW.MM.AudioDriver.Machine, 2017/01/26, Mofidy for audio config*/
 //#include "sdm660-external-codec.dtsi"
