@@ -433,13 +433,12 @@ static inline bool rwsem_has_spinner(struct rw_semaphore *sem)
 /*
  * Wait until we successfully acquire the write lock
  */
-static inline struct rw_semaphore *
-__rwsem_down_write_failed_common(struct rw_semaphore *sem, int state)
+__visible
+struct rw_semaphore __sched *rwsem_down_write_failed(struct rw_semaphore *sem)
 {
 	long count;
 	bool waiting = true; /* any queued threads before us */
 	struct rwsem_waiter waiter;
-	struct rw_semaphore *ret = sem;
 
 	/* undo write bias from down_write operation, stop active locking */
 	count = rwsem_atomic_update(-RWSEM_ACTIVE_WRITE_BIAS, sem);
@@ -479,7 +478,7 @@ __rwsem_down_write_failed_common(struct rw_semaphore *sem, int state)
 		count = rwsem_atomic_update(RWSEM_WAITING_BIAS, sem);
 
 	/* wait until we successfully acquire the lock */
-	set_current_state(state);
+	set_current_state(TASK_UNINTERRUPTIBLE);
 	while (true) {
 		if (rwsem_try_write_lock(count, sem))
 			break;
@@ -487,47 +486,20 @@ __rwsem_down_write_failed_common(struct rw_semaphore *sem, int state)
 
 		/* Block until there are no active lockers. */
 		do {
-			if (signal_pending_state(state, current))
-				goto out_nolock;
-
 			schedule();
-			set_current_state(state);
+			set_current_state(TASK_UNINTERRUPTIBLE);
 		} while ((count = sem->count) & RWSEM_ACTIVE_MASK);
 
 		raw_spin_lock_irq(&sem->wait_lock);
 	}
 	__set_current_state(TASK_RUNNING);
+
 	list_del(&waiter.list);
 	raw_spin_unlock_irq(&sem->wait_lock);
 
-	return ret;
-
-out_nolock:
-	__set_current_state(TASK_RUNNING);
-	raw_spin_lock_irq(&sem->wait_lock);
-	list_del(&waiter.list);
-	if (list_empty(&sem->wait_list))
-		rwsem_atomic_update(-RWSEM_WAITING_BIAS, sem);
-	else
-		__rwsem_do_wake(sem, RWSEM_WAKE_ANY);
-	raw_spin_unlock_irq(&sem->wait_lock);
-
-	return ERR_PTR(-EINTR);
-}
-
-__visible struct rw_semaphore * __sched
-rwsem_down_write_failed(struct rw_semaphore *sem)
-{
-	return __rwsem_down_write_failed_common(sem, TASK_UNINTERRUPTIBLE);
+	return sem;
 }
 EXPORT_SYMBOL(rwsem_down_write_failed);
-
-__visible struct rw_semaphore * __sched
-rwsem_down_write_failed_killable(struct rw_semaphore *sem)
-{
-	return __rwsem_down_write_failed_common(sem, TASK_KILLABLE);
-}
-EXPORT_SYMBOL(rwsem_down_write_failed_killable);
 
 /*
  * handle waking up a waiter on the semaphore
