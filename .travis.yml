@@ -5,6 +5,8 @@ dist: focal
 vm:
   size: x-large
 
+cache: ccache
+
 before_script:
   - sudo apt-get update -y
   - sudo apt-get install wget -y
