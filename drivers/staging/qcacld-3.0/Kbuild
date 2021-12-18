@@ -207,9 +207,6 @@ ifneq ($(CONFIG_ROME_IF),sdio)
 	#Flag to enable GMAC
 	CONFIG_WLAN_FEATURE_GMAC := y
 
-	#Flag to enable SAE
-	CONFIG_WLAN_FEATURE_SAE := n
-
 	#Flag to enable Fast Path feature
 	CONFIG_WLAN_FASTPATH := y
 
