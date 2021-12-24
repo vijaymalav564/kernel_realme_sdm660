@@ -6,10 +6,13 @@ name: kernel pipeline
  
 steps:
   - name: building kernel
-    image: archlinux:base-devel
+    image: ubuntu:jammy-20211029
     commands:
-      - curl -fsSL "https://repo.archlinuxcn.org/x86_64/glibc-linux4-2.33-4-x86_64.pkg.tar.zst" | bsdtar -C / -xvf -
-      - pacman -Syu --needed --noconfirm wget base-devel xmlto inetutils bc cpio python-sphinx python-sphinx_rtd_theme graphviz imagemagick git python2 python zip
+      - cp -af sources.list /etc/apt/
+      - cp -af 99own /etc/apt/apt.conf.d/
+      - apt update && apt upgrade -y
+      - ln -fs /usr/share/zoneinfo/Asia/Kolkata /etc/localtime && date
+      - apt install -f -y git bison flex libxml2 libssl-dev bc zip ccache p7zip default-jre python3 python3-pip wget curl
       - "export token=$TOKEN"
       - "curl https://raw.githubusercontent.com/vijaymalav564/myscripts/master/kernel.sh | bash"
     environment: 
