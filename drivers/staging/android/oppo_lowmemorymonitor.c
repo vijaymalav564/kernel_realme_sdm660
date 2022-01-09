@@ -46,14 +46,14 @@ int oppo_lowmemory_detect(struct task_struct *task, int tasksize)
 	//then, we send signal to print leak stack for three times
 	//finally, we kill it.
 	//else if tasksie is more than one third of totalram, enable task backtrace
-	if (tasksize > (totalram_pages >> 1)) {
+	if (tasksize > (totalram_pages() >> 1)) {
 		send_sig(SIGOOM, task, 0);
 		if (memleak_print_times++ > 3) {
 			send_sig(SIGKILL, task, 0);
 			memleak_print_times = 0;
 			return 1;
 		}
-	} else if (tasksize > ONETHIRD(totalram_pages)) {
+	} else if (tasksize > ONETHIRD(totalram_pages())) {
 		send_sig(SIGBACKTRACE_ENABLE, task, 0);
 		send_sig(SIGOOM, task, 0);
 	}
