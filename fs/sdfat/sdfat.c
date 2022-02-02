@@ -2522,11 +2522,7 @@ static struct dentry *__sdfat_lookup(struct inode *dir, struct dentry *dentry)
 		 * In such case, we reuse an alias instead of new dentry
 		 */
 		if (d_unhashed(alias)) {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 10, 0)
-			BUG_ON(alias->d_name.hash != dentry->d_name.hash && alias->d_name.len != dentry->d_name.len);
-#else
 			BUG_ON(alias->d_name.hash_len != dentry->d_name.hash_len);
-#endif
 			sdfat_msg(sb, KERN_INFO, "rehashed a dentry(%p) "
 				"in read lookup", alias);
 			d_drop(dentry);
@@ -5328,7 +5324,6 @@ static void __exit exit_sdfat_fs(void)
 
 	sdfat_destroy_inodecache();
 	unregister_filesystem(&sdfat_fs_type);
-
 #ifdef CONFIG_SDFAT_USE_FOR_EXFAT
 	unregister_filesystem(&exfat_fs_type);
 #endif /* CONFIG_SDFAT_USE_FOR_EXFAT */
