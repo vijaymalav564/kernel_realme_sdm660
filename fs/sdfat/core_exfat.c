@@ -283,7 +283,7 @@ static void exfat_set_entry_time(DENTRY_T *p_entry, TIMESTAMP_T *tp, u8 mode)
 	case TM_ACCESS:
 		ep->access_time = cpu_to_le16(t);
 		ep->access_date = cpu_to_le16(d);
-		ep->access_tz = tp->tz.value; 
+		ep->access_tz = tp->tz.value;
 		break;
 	}
 } /* end of exfat_set_entry_time */
