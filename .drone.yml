@@ -6,7 +6,7 @@ name: kernel pipeline
  
 steps:
   - name: building kernel
-    image: panchajanya1999/archlinux:latest
+    image: ghcr.io/vijaymalav564/docker:arch
     commands:
       - "export token=$TOKEN"
       - "curl https://raw.githubusercontent.com/vijaymalav564/myscripts/master/kernel.sh | bash"
