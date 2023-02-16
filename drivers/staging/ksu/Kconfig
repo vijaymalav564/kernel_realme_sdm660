@@ -12,3 +12,11 @@ config KSU_DEBUG
 	depends on KSU
 	help
 	This enables debug mode for KSU
+
+config KSU_NO_KPROBES
+	tristate "KernelSU flags without kprobes"
+	default n
+	depends on KSU
+	help
+	Needed for legacy kernel with broken kprobes with patch applied.
+	Read more at https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#manully-modify-the-kernel-source
