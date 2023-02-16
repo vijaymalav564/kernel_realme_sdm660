@@ -1,17 +1,17 @@
-obj-y += ksu.o
-obj-y += allowlist.o
+obj-$(CONFIG_KSU) += ksu.o
+obj-$(CONFIG_KSU) += allowlist.o
 kernelsu-objs := apk_sign.o
-obj-y += kernelsu.o
-obj-y += module_api.o
-obj-y += sucompat.o
-obj-y += uid_observer.o
-obj-y += manager.o
-obj-y += core_hook.o
-obj-y += ksud.o
-obj-y += embed_ksud.o
-obj-y += kernel_compat.o
+obj-$(CONFIG_KSU) += kernelsu.o
+obj-$(CONFIG_KSU) += module_api.o
+obj-$(CONFIG_KSU) += sucompat.o
+obj-$(CONFIG_KSU) += uid_observer.o
+obj-$(CONFIG_KSU) += manager.o
+obj-$(CONFIG_KSU) += core_hook.o
+obj-$(CONFIG_KSU) += ksud.o
+obj-$(CONFIG_KSU) += embed_ksud.o
+obj-$(CONFIG_KSU) += kernel_compat.o
 
-obj-y += selinux/
+obj-$(CONFIG_KSU) += selinux/
 
 ifndef EXPECTED_SIZE
 EXPECTED_SIZE := 0x033b
