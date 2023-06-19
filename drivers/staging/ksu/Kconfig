@@ -1,16 +1,18 @@
+menu "KernelSU"
+
 config KSU
-	tristate "KernelSU module"
+	tristate "KernelSU function support"
+	select OVERLAY_FS
 	default n
-	depends on OVERLAY_FS
 	help
-	This is the KSU privilege driver for android system.
+	Enable kernel-level root privileges on Android System.
 
 config KSU_DEBUG
-	tristate "KernelSU module debug mode"
-	default n
+	bool "KernelSU debug mode"
 	depends on KSU
+	default n
 	help
-	This enables debug mode for KSU
+	Enable KernelSU debug mode
 
 config KSU_NO_KPROBES
 	tristate "KernelSU flags without kprobes"
@@ -19,3 +21,5 @@ config KSU_NO_KPROBES
 	help
 	Needed for legacy kernel with broken kprobes with patch applied.
 	Read more at https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#manully-modify-the-kernel-source
+
+endmenu

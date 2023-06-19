@@ -2,7 +2,7 @@
 #include "objsec.h"
 #include "linux/version.h"
 #include "../klog.h" // IWYU pragma: keep
-#if ((KERNEL_VERSION(4, 14, 0) <= LINUX_VERSION_CODE) && (LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 163))) || (LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 212))
+#ifndef KSU_COMPAT_USE_SELINUX_STATE
 #include "avc.h"
 #endif
 
@@ -39,9 +39,9 @@ static int transive_to_domain(const char *domain)
 	return error;
 }
 
-void setup_selinux()
+void setup_selinux(const char *domain)
 {
-	if (transive_to_domain(KERNEL_SU_DOMAIN)) {
+	if (transive_to_domain(domain)) {
 		pr_err("transive domain failed.");
 		return;
 	}
@@ -57,7 +57,7 @@ if (!is_domain_permissive) {
 void setenforce(bool enforce)
 {
 #ifdef CONFIG_SECURITY_SELINUX_DEVELOP
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 163)) || ((KERNEL_VERSION(4, 10, 0) > LINUX_VERSION_CODE) && (LINUX_VERSION_CODE  >= KERNEL_VERSION(4, 9, 212)))
+#ifdef KSU_COMPAT_USE_SELINUX_STATE
 	selinux_state.enforcing = enforce;
 #else
 	selinux_enforcing = enforce;
@@ -68,7 +68,7 @@ void setenforce(bool enforce)
 bool getenforce()
 {
 #ifdef CONFIG_SECURITY_SELINUX_DISABLE
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 163)) || ((KERNEL_VERSION(4, 10, 0) > LINUX_VERSION_CODE) && (LINUX_VERSION_CODE  >= KERNEL_VERSION(4, 9, 212)))
+#ifdef KSU_COMPAT_USE_SELINUX_STATE
 	if (selinux_state.disabled) {
 #else
 	if (selinux_disabled) {
@@ -78,7 +78,7 @@ bool getenforce()
 #endif
 
 #ifdef CONFIG_SECURITY_SELINUX_DEVELOP
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 163)) || ((KERNEL_VERSION(4, 10, 0) > LINUX_VERSION_CODE) && (LINUX_VERSION_CODE  >= KERNEL_VERSION(4, 9, 212)))
+#ifdef KSU_COMPAT_USE_SELINUX_STATE
 	return selinux_state.enforcing;
 #else
 	return selinux_enforcing;
@@ -88,7 +88,8 @@ bool getenforce()
 #endif
 }
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 212)
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)) &&                         \
+	!defined(KSU_COMPAT_HAS_CURRENT_SID)
 /*
  * get the subjective security ID of the current task
  */

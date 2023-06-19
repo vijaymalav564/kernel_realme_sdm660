@@ -10,7 +10,6 @@ obj-$(CONFIG_KSU) += core_hook.o
 obj-$(CONFIG_KSU) += ksud.o
 obj-$(CONFIG_KSU) += embed_ksud.o
 obj-$(CONFIG_KSU) += kernel_compat.o
-
 obj-$(CONFIG_KSU) += selinux/
 
 ifndef EXPECTED_SIZE
@@ -21,7 +20,8 @@ ifndef EXPECTED_HASH
 EXPECTED_HASH := 0xb0b91415
 endif
 
+ccflags-y += -DKSU_GIT_VERSION=815
 ccflags-y += -DEXPECTED_SIZE=$(EXPECTED_SIZE)
 ccflags-y += -DEXPECTED_HASH=$(EXPECTED_HASH)
 ccflags-y += -Wno-implicit-function-declaration -Wno-strict-prototypes -Wno-int-conversion -Wno-gcc-compat
-ccflags-y += -Wno-macro-redefined -Wno-declaration-after-statement
+ccflags-y += -Wno-declaration-after-statement
